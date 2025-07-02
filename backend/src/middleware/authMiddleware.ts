@@ -4,7 +4,6 @@ import { failResponse } from "../utils/response";
 import { StatusCode } from "../utils/statusCode";
 import jwt from 'jsonwebtoken';
 import { JwtPayload } from "../interfaces/express";
-
 const authenticate= async (req:Request,res:Response,next:NextFunction):Promise<any>=>{
     const token=req.cookies[`${JWT_TOKEN_NAME}`];
     if(!token){

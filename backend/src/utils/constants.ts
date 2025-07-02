@@ -59,5 +59,6 @@ export const Messages = {
     Request_Not_Found: 'Request not found',
     Request_Update_Success: 'Request status updated successfully',
     Request_Update_Fail: 'Failed to update request status',
-    Password_MissMatch:"Passwords do not match"
+    Password_MissMatch:"Passwords do not match",
+    Invalid_Credentials:"Invalid credentials"
 }
