@@ -1,17 +1,18 @@
 import { genSalt } from "bcryptjs";
-import UserModel from "../schema/userSchema";
-import { Messages } from "../utils/constants";
+import UserModel, { Status } from "../schema/userSchema";
+import { JWT_TOKEN_NAME, Messages } from "../utils/constants";
 import { failResponse, successResponse } from "../utils/response";
 import { StatusCode } from "../utils/statusCode";
-
 import bcrypt from "bcryptjs";
-import { Response } from "express";
+import { Request, Response } from "express";
+import generateToken from "../utils/jwtUtils";
 
 
-const register = async (req: Request, res: Response): Promise<any> => {
+const registerUser = async (req: Request, res: Response): Promise<any> => {
     const { name, email, password, role, phoneNumber } = req.body;
+    console.log('reqbody',req.body)
 
-    if (!name || email || password || role || phoneNumber) {
+    if (!name || !email || !password || !role || !phoneNumber) {
         failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
         return;
     }
@@ -28,8 +29,7 @@ const register = async (req: Request, res: Response): Promise<any> => {
         const newUser = await UserModel.create({
             name,
             email,
-            password,
-            passwordHash,
+            password: passwordHash,
             phoneNumber,
             role: [role],
             status: Status.Active,
@@ -39,7 +39,7 @@ const register = async (req: Request, res: Response): Promise<any> => {
             createdAt: new Date(),
             updatedAt: new Date(),
         });
-       return successResponse(res,newUser, Messages.Register_Sucess, StatusCode.Created) ;
+        return successResponse(res, newUser, Messages.Register_Sucess, StatusCode.Created);
 
     }
     catch (error) {
@@ -49,14 +49,53 @@ const register = async (req: Request, res: Response): Promise<any> => {
 
 }
 
-const login= async(req:Request,res:Response):Promise<any>=>{
-
-
-    try{
-
+const login = async (req: Request, res: Response): Promise<any> => {
+    const { email, phoneNumber, password } = req.body;
+    if (!phoneNumber && (!email || !password)) {
+        failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
+        return
     }
-    catch(error){
-        console.error('Login failed',error);
-        failResponse(res,Messages.Login_Fail,StatusCode.Internal_Server_Error)
+
+    try {
+        let user;
+        if (phoneNumber && !email && !password) {
+            user = await UserModel.findOne({ phoneNumber });
+            if (!user) {
+                failResponse(res, Messages.User_Not_Found, StatusCode.Unauthorized);
+                return;
+            }
+        }
+        else if (email && password) {
+            user = await UserModel.findOne({ email });
+            if (!user) {
+                failResponse(res, Messages.User_Not_Found, StatusCode.Unauthorized);
+                return;
+            }
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                failResponse(res, Messages.Invalid_Credentials, StatusCode.Unauthorized);
+                return
+            }
+        }
+        else {
+             failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
+            return;
+        }
+
+
+        const token = generateToken(user._id.toString(), user.role[0]);
+        res.cookie(`${JWT_TOKEN_NAME}`, token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none'
+        });
+        successResponse(res, { token, userId: user._id, user: { name: user.name, role: user.role } }, Messages.Login_Sucess, StatusCode.OK)
+    }
+    catch (error) {
+        console.error('Login failed', error);
+        failResponse(res, Messages.Login_Fail, StatusCode.Internal_Server_Error)
     }
 }
+
+
+export { registerUser, login }
