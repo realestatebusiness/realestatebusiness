@@ -12,7 +12,7 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
     const { name, email, password, role, phoneNumber } = req.body;
     console.log('reqbody',req.body)
 
-    if (!name || !email || !password || !role || !phoneNumber) {
+    if (!name || !email || !password || !phoneNumber) {
         failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
         return;
     }
