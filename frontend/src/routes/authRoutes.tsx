@@ -11,7 +11,7 @@ const AppRouter = () => {
                     <Route path="/" element={<Navigate to='/register' />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />}/>
-                    <Route path="/property" element={<PropertyPage />}/>
+                    <Route path="/createProperty" element={<PropertyPage />}/>
                 </Route>
             </Routes>
         </Router>
