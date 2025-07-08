@@ -1,17 +1,20 @@
-// src//utils//firebase.ts
-import { initializeApp } from 'firebase/app';
-import { getAuth, RecaptchaVerifier } from 'firebase/auth';
+//src/utils/firebase.ts
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB7sc4GX9QTytrO83Ye1knJaTLrd3UUwRo",
+  authDomain: "realestatebusiness-2bd31.firebaseapp.com",
+  projectId: "realestatebusiness-2bd31",
+  storageBucket: "realestatebusiness-2bd31.firebasestorage.app",
+  messagingSenderId: "395220333308",
+  appId: "1:395220333308:web:4a64b514b7087288959d79",
+  measurementId: "G-QTW3Q1566L"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-export { auth, RecaptchaVerifier };
+const analytics = getAnalytics(app);
+const auth = getAuth(app); 
+export { app, analytics, auth };
