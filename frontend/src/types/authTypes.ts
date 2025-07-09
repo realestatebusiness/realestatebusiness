@@ -16,7 +16,12 @@ export interface RegistrationFormData {
   email: string;
   password: string;
   role:string;
-  phoneNumber: number;
+  phoneNumber: string;
+}
+export interface LoginFormData {
+  email: string;
+  password: string;
+  phoneNumber:string;
 }
 
 export interface UserProfile {

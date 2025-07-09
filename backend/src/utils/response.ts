@@ -22,9 +22,3 @@ export const errorResponse=(res:Response,message:string,statusCode = 500,error=n
         error
     })
 }
-export const asyncHandler = <T = void>(
-  fn: RequestHandler
-) => (req: Request, res: Response, next: NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
-  
