@@ -18,7 +18,10 @@ const Header = () => {
           <a href="/createProperty" className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">Post Property</a>
 
           <a className="text-sm font-medium text-gray-700 hover:text-blue-600" href="/login">
-            Login / Signup
+            Login 
+          </a>
+          <a className="text-sm font-medium text-gray-700 hover:text-blue-600" href="/register">
+            Signup 
           </a>
         </div>
       </div>

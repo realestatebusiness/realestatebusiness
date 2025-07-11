@@ -89,7 +89,6 @@ const Login = () => {
         if (isLogin && data.success) {
           console.log('Login successful:', data.data);
 
-          // Get user location
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => {
