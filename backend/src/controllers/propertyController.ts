@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import VillaPropertyModel from "../schema/propertySchema";
 import { imagekit } from "../config/imageKit";
 import { Messages } from "../utils/constants";
+import { failResponse, successResponse } from "../utils/response";
+import { StatusCode } from "../utils/statusCode";
 
 const uploadMediaFile = async (file: string, index: number) => {
   const isImage = file.startsWith("data:image/");
@@ -38,7 +40,7 @@ export const createProperty = async (req: Request, res: Response): Promise<void>
     } = req.body;
 
     if (!media || !Array.isArray(media)) {
-      res.status(400).json({ message: Messages.Invalid_Images_Format });
+      failResponse(res,Messages.Invalid_Images_Format,StatusCode.Bad_Request)
       return;
     }
 
@@ -58,17 +60,24 @@ export const createProperty = async (req: Request, res: Response): Promise<void>
 
     const savedProperty = await newProperty.save();
 
-    res.status(201).json({
-      message: Messages.Property_Creation_Success,
-      data: savedProperty
-    });
+    successResponse(res,{data:savedProperty},Messages.Property_Creation_Success,StatusCode.Created)
+
   } catch (error: any) {
     console.error("Create Property Error:", error.message);
-    res.status(500).json({
-      message: Messages.Property_Creation_Failed,
-      error: error.message || Messages.Internal_Server_Error
-    });
+    failResponse(res,Messages.Property_Creation_Failed,StatusCode.Internal_Server_Error)
+    
   }
 };
 
 
+export const getAllProperties=async(req:Request,res:Response):Promise<void>=>{
+
+  try{
+    const properties= await VillaPropertyModel.find();
+    successResponse(res,{data:properties},Messages.Property_Fetching_Success,StatusCode.OK)
+
+  }catch(error){
+    console.log(error)
+    failResponse(res,Messages.Property_Fetching_Fail,StatusCode.Internal_Server_Error)
+  }
+}

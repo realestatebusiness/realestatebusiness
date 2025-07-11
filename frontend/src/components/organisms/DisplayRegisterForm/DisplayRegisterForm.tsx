@@ -6,41 +6,44 @@ import type { ApiResponse, RegistrationFormData } from "../../../types/authTypes
 import toast from "react-hot-toast";
 import { RegisterFormFields } from "../../molecules/RegisterFormFields";
 import DisplayOtpVerification from "../../molecules/OtpFile/DisplayOtpVerification";
+import { useNavigate } from "react-router-dom";
 
 const DisplayRegisterForm: React.FC = () => {
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<RegistrationFormData>();
   const [phone, setPhone] = useState('');
   const [otpVerified, setOtpVerified] = useState(false);
-
+  const navigate = useNavigate();
 
   const formatPhoneNumber = (raw: string): string => {
-  const cleaned = raw.replace(/\D/g, ''); 
-  if (cleaned.length === 10) {
-    return `+91${cleaned}`; 
-  } else if (cleaned.length > 10 && cleaned.startsWith('91')) {
+    const cleaned = raw.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `+91${cleaned}`;
+    } else if (cleaned.length > 10 && cleaned.startsWith('91')) {
+      return `+${cleaned}`;
+    }
     return `+${cleaned}`;
-  }
-  return `+${cleaned}`; 
-};
+  };
 
-const onSubmit = async (data: RegistrationFormData) => {
-  if (!otpVerified) {
-    toast.error('Please verify phone number');
-    return;
-  }
+  const onSubmit = async (data: RegistrationFormData) => {
+    if (!otpVerified) {
+      toast.error('Please verify phone number');
+      return;
+    }
 
-  const formattedPhone = formatPhoneNumber(phone);
+    const formattedPhone = formatPhoneNumber(phone);
 
-  try {
-    const res = await postRequest<ApiResponse>('/register', {
-      ...data,
-      phoneNumber: formattedPhone,
-    });
-    toast.success('Registration successful');
-  } catch (error) {
-    console.error('Registration failed', error);
-  }
-};
+    try {
+      const res = await postRequest<ApiResponse>('/register', {
+        ...data,
+        phoneNumber: formattedPhone,
+      });
+
+      toast.success('Registration successful');
+      navigate('/login')
+    } catch (error) {
+      console.error('Registration failed', error);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

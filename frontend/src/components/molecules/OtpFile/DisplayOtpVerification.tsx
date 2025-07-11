@@ -27,47 +27,97 @@ const formatPhoneNumber = (raw: string): string => {
   return `+${cleaned}`;
 };
 
-const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({ 
-  phone, 
-  setPhone, 
-  onVerified, 
-  label 
+// Mock verification for development
+const isDevelopment = process.env.NODE_ENV === 'development';
+const MOCK_OTP = '123456';
+
+const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
+  phone,
+  setPhone,
+  onVerified,
+  label
 }) => {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const confirmationResultRef = useRef<any>(null);
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
-  
-  const sendOtp = async () => {
-    if (!phone.trim()) {
-      toast.error('Please enter phone number');
-      return;
+  // Setup reCAPTCHA verifier once on mount (only in production)
+  useEffect(() => {
+    if (!isDevelopment && typeof window !== 'undefined' && !recaptchaVerifierRef.current) {
+      try {
+        recaptchaVerifierRef.current = new RecaptchaVerifier(
+          auth,
+          'recaptcha-container',
+          {
+            size: 'invisible',
+            callback: (response: any) => {
+              console.log('reCAPTCHA solved:', response);
+            },
+            'expired-callback': () => {
+              console.warn('reCAPTCHA expired.');
+            },
+          }
+        );
+
+        recaptchaVerifierRef.current.render().then((widgetId: any) => {
+          console.log('reCAPTCHA widget rendered:', widgetId);
+        }).catch((error: any) => {
+          console.error('reCAPTCHA render failed:', error);
+        });
+      } catch (err) {
+        console.error('Recaptcha setup failed:', err);
+      }
     }
 
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+    };
+  }, []);
+
+  const sendOtpMock = async () => {
+    setLoading(true);
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setOtpSent(true);
+    setLoading(false);
+    toast.success(`OTP sent successfully (Development mode: use ${MOCK_OTP})`);
+  };
+
+  const sendOtpReal = async () => {
     const formattedPhone = formatPhoneNumber(phone);
     setLoading(true);
-    
+
     try {
+      if (!recaptchaVerifierRef.current) {
+        toast.error('Recaptcha not initialized. Please refresh and try again.');
+        return;
+      }
+
       console.log('Sending OTP to:', formattedPhone);
+
       const confirmationResult = await signInWithPhoneNumber(
-        auth, 
-        formattedPhone, 
-        window.recaptchaVerifier
+        auth,
+        formattedPhone,
+        recaptchaVerifierRef.current
       );
-      
+
       confirmationResultRef.current = confirmationResult;
       setOtpSent(true);
       toast.success('OTP sent successfully');
     } catch (err: any) {
       console.error('Failed to send OTP:', err);
-      
-      // Handle specific Firebase errors
-      if (err.code === 'auth/invalid-phone-number') {
+      if (err.code === 'auth/billing-not-enabled') {
+        toast.error('Firebase billing not enabled. Please enable billing or use development mode.');
+      } else if (err.code === 'auth/invalid-phone-number') {
         toast.error('Invalid phone number format');
       } else if (err.code === 'auth/too-many-requests') {
-        toast.error('Too many requests. Please try again later.');
+        toast.error('Too many requests. Try again later.');
       } else {
         toast.error('Failed to send OTP. Please try again.');
       }
@@ -76,17 +126,72 @@ const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
     }
   };
 
+  const sendOtp = async () => {
+    if (!phone.trim()) {
+      toast.error('Please enter phone number');
+      return;
+    }
+
+    if (isDevelopment) {
+      await sendOtpMock();
+    } else {
+      await sendOtpReal();
+    }
+  };
+
   const verifyOtpWithBackend = async (idToken: string): Promise<VerifyOtpResponse> => {
+    return await postRequest<VerifyOtpResponse>('/verify-otp', { idToken });
+  };
+
+  const handleVerifyOtpMock = async () => {
+    if (otp !== MOCK_OTP) {
+      toast.error('Invalid OTP. Use 123456 for development');
+      return;
+    }
+
+    setLoading(true);
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     try {
-      // Updated endpoint to match your backend route
-      const response = await postRequest<VerifyOtpResponse>('/verify-otp', { 
-        idToken 
-      });
-      console.log('✅ OTP Verified:', response);
-      return response;
+      // Mock backend call
+      console.log('Mock: Phone verification successful');
+      setVerified(true);
+      toast.success('Phone number verified successfully! (Development mode)');
+      onVerified();
     } catch (error) {
-      console.error('❌ Failed to verify OTP with backend:', error);
-      throw error;
+      toast.error('Verification failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtpReal = async () => {
+    if (!confirmationResultRef.current) {
+      toast.error('Please request OTP first');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await confirmationResultRef.current.confirm(otp);
+      const idToken = await result.user.getIdToken();
+      await verifyOtpWithBackend(idToken);
+      setVerified(true);
+      toast.success('Phone number verified successfully!');
+      onVerified();
+    } catch (error: any) {
+      console.error('OTP verification failed:', error);
+      if (error.code === 'auth/invalid-verification-code') {
+        toast.error('Invalid OTP.');
+      } else if (error.code === 'auth/code-expired') {
+        toast.error('OTP expired. Request a new one.');
+      } else {
+        toast.error('Verification failed.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,42 +201,10 @@ const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
       return;
     }
 
-    if (!confirmationResultRef.current) {
-      toast.error('Please request OTP first');
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      console.log('Verifying OTP:', otp);
-      
-      // First verify with Firebase
-      const result = await confirmationResultRef.current.confirm(otp);
-      console.log('Firebase verification successful:', result.user.uid);
-      
-      // Get ID token
-      const idToken = await result.user.getIdToken();
-      
-      // Then verify with your backend
-      await verifyOtpWithBackend(idToken);
-      
-      setVerified(true);
-      toast.success('Phone number verified successfully!');
-      onVerified();
-    } catch (error: any) {
-      console.error('OTP verification failed:', error);
-      
-      // Handle specific errors
-      if (error.code === 'auth/invalid-verification-code') {
-        toast.error('Invalid OTP. Please check and try again.');
-      } else if (error.code === 'auth/code-expired') {
-        toast.error('OTP has expired. Please request a new one.');
-      } else {
-        toast.error('OTP verification failed. Please try again.');
-      }
-    } finally {
-      setLoading(false);
+    if (isDevelopment) {
+      await handleVerifyOtpMock();
+    } else {
+      await handleVerifyOtpReal();
     }
   };
 
@@ -146,14 +219,19 @@ const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
     return (
       <div className="text-green-600 font-medium">
         ✅ Phone number verified successfully!
+        {isDevelopment && <div className="text-sm text-gray-500 mt-1">(Development mode)</div>}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div id="recaptcha-container" />
-
+      {!isDevelopment && <div id="recaptcha-container" />}
+      {isDevelopment && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+          <strong>Development Mode:</strong> Use OTP <code className="bg-yellow-100 px-1 rounded">{MOCK_OTP}</code>
+        </div>
+      )}
       {!otpSent ? (
         <div className="space-y-3">
           <InputField
@@ -165,11 +243,7 @@ const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
             onChange={(e) => setPhone(e.target.value)}
             maxLength={10}
           />
-          <Button 
-            onClick={sendOtp} 
-            disabled={loading || !phone.trim()}
-            className="w-full"
-          >
+          <Button onClick={sendOtp} disabled={loading || !phone.trim()} className="w-full">
             {loading ? 'Sending...' : 'Send OTP'}
           </Button>
         </div>
@@ -179,7 +253,6 @@ const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
             Enter the 6-digit OTP sent to{' '}
             <strong className="text-gray-800">{formatPhoneNumber(phone)}</strong>
           </p>
-          
           <OtpInput
             value={otp}
             onChange={setOtp}
@@ -197,24 +270,17 @@ const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
               outline: 'none',
               transition: 'border-color 0.15s ease-in-out',
             }}
-           
             renderInput={(props) => <input {...props} />}
           />
-          
           <div className="flex gap-2">
-            <Button 
-              onClick={handleVerifyOtp} 
+            <Button
+              onClick={handleVerifyOtp}
               disabled={loading || otp.length !== 6}
               className="flex-1"
             >
               {loading ? 'Verifying...' : 'Verify OTP'}
             </Button>
-            
-            <Button 
-              onClick={handleResendOtp}
-              disabled={loading}
-              className="px-4"
-            >
+            <Button onClick={handleResendOtp} disabled={loading} className="px-4">
               Resend
             </Button>
           </div>
@@ -225,3 +291,12 @@ const DisplayOtpVerification: React.FC<OtpVerificationProps> = ({
 };
 
 export default DisplayOtpVerification;
+
+
+
+
+
+
+
+
+

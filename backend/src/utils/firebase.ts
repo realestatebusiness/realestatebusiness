@@ -1,10 +1,12 @@
 import * as admin from 'firebase-admin';
+import path from 'path';
 
-const serviceAccount = require('../../firebase-service-account.json');
+const serviceAccountPath = path.resolve(__dirname, '../../firebase-service-account.json');
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  projectId: serviceAccount.project_id,
-});
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(require(serviceAccountPath)),
+  });
+}
 
 export default admin;
