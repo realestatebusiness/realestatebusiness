@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Mic, Crosshair, ChevronDown } from 'react-feather';
 
+// Helper to format currency
 const formatCurrency = (value) => {
   if (value >= 1_00_00_000) return `₹${(value / 1_00_00_000).toFixed(2)} Cr`;
   if (value >= 1_00_000) return `₹${(value / 1_00_000).toFixed(1)} L`;
@@ -41,6 +42,21 @@ export const HomePage=()=> {
   const plotTypes = ['Residential Plots/Land', 'Commercial Plots/Land'];
 
   const propertyTypes = selectedTab === 'Plots/Land' ? plotTypes : residentialTypes;
+const [userProperties, setUserProperties] = useState([]);
+
+useEffect(() => {
+  const fetchProperties = async () => {
+    try {
+      const response = await fetch('/properties?userId=user123');
+      const result = await response.json();
+      setUserProperties(result.data || []);
+    } catch (error) {
+      console.error("Failed to fetch properties:", error);
+    }
+  };
+
+  fetchProperties();
+}, []);
 
   const toggleType = (type) => {
     const updated = selectedTypes.includes(type)
@@ -456,6 +472,80 @@ export const HomePage=()=> {
           </div>
         )}
       </div>
+      {/* Your Property Postings */}
+{/* User Property Postings */}
+<div className="bg-white rounded-xl shadow-md p-6 max-w-7xl mx-auto mb-8">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-xl font-semibold text-gray-900">Your Property Postings</h2>
+    <a href="#" className="text-blue-600 text-sm font-medium hover:underline">View All</a>
+  </div>
+
+  {userProperties.length === 0 ? (
+    <p className="text-gray-600 text-sm">No properties found.</p>
+  ) : (
+    userProperties.map((property: any) => (
+      <div key={property._id} className="mb-6">
+        <div className="text-sm text-gray-600 mb-2">
+          Manage posting for <br />
+          <span className="font-medium text-gray-800">
+            Property ID - {property._id}, ({property.basicDetails?.propertyType || 'N/A'})
+          </span>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center">
+              <img
+                src={property.media?.[0]?.url || '/placeholder-building.png'}
+                alt="Property"
+                className="w-12 h-12 object-contain"
+              />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">
+                Property ID - <span className="font-medium text-gray-700">{property._id}</span>
+              </p>
+              <h3 className="text-base font-semibold text-gray-900">
+                {property.basicDetails?.propertyTitle || 'Untitled Property'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                in {property.locationDetails?.locality || 'N/A'}, {property.locationDetails?.city || ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-start md:items-end gap-2 mt-4 md:mt-0">
+            <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+              {property.basicDetails?.status || 'Inactive'}
+            </span>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition">
+              Re-activate Posting
+            </button>
+          </div>
+        </div>
+
+        {/* Responses (static for now) */}
+        <div className="border-t pt-4 mt-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-base font-semibold text-gray-900">0 Responses on this posting</h3>
+            <a href="#" className="text-blue-600 text-sm font-medium hover:underline">View all responses</a>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 border rounded-lg p-4 text-center text-gray-500">
+              <h4 className="font-medium text-sm text-gray-700">Buyer Responses</h4>
+              <p className="text-2xl">— —</p>
+            </div>
+            <div className="flex-1 border rounded-lg p-4 text-center text-gray-500">
+              <h4 className="font-medium text-sm text-gray-700">Dealer Responses</h4>
+              <p className="text-2xl">— —</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))
+  )}
+</div>
+
     </div>
   );
 }
