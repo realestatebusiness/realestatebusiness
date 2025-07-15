@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Search, Mic, Crosshair, ChevronDown } from 'react-feather';
+import { useEffect, useState } from "react";
+import { ChevronDown, Crosshair, Mic, Search } from "react-feather";
+import { useNavigate } from "react-router-dom";
 
 // Helper to format currency
-const formatCurrency = (value) => {
+const formatCurrency = (value:any) => {
   if (value >= 1_00_00_000) return `₹${(value / 1_00_00_000).toFixed(2)} Cr`;
   if (value >= 1_00_000) return `₹${(value / 1_00_000).toFixed(1)} L`;
   if (value >= 1_000) return `₹${(value / 1_000).toFixed(0)} K`;
@@ -10,7 +11,7 @@ const formatCurrency = (value) => {
 };
 
 // Helper to format area
-const formatArea = (value) => {
+const formatArea = (value :number) => {
   if (value >= 1000) return `${(value / 1000).toFixed(1)}K+ sqft`;
   return `${value} sqft`;
 };
@@ -18,17 +19,21 @@ const formatArea = (value) => {
 export const HomePage=()=> {
   const [selectedTab, setSelectedTab] = useState('Buy');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [propertyCategory, setPropertyCategory] = useState('All Residential');
-  const [activeFilter, setActiveFilter] = useState(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState([0, 10_00_00_000]); // ₹0 to ₹100 Cr
   const [areaRange, setAreaRange] = useState([0, 1000]); // 0 to 1000+ sqft
-  const [selectedBedrooms, setSelectedBedrooms] = useState([]);
-  const [selectedConstructionStatus, setSelectedConstructionStatus] = useState([]);
-  const [selectedPostedBy, setSelectedPostedBy] = useState([]);
-  const [selectedFurnishing, setSelectedFurnishing] = useState([]);
-  const [selectedSharing, setSelectedSharing] = useState([]);
-  const [selectedAvailableFor, setSelectedAvailableFor] = useState([]);
+  const [selectedBedrooms, setSelectedBedrooms] = useState<string[]>([]);
+  const [selectedConstructionStatus, setSelectedConstructionStatus] = useState<string[]>([]);
+  const [selectedPostedBy, setSelectedPostedBy] = useState<string[]>([]);
+  const [selectedFurnishing, setSelectedFurnishing] = useState<string[]>([]);
+  const [selectedSharing, setSelectedSharing] = useState<string[]>([]);
+  const [selectedAvailableFor, setSelectedAvailableFor] = useState<string[]>([]);
+  const [userCity, setUserCity] = useState('');
+  const [locationTag, setLocationTag] = useState<{ lat: number; lng: number } | null>(null);
+
+  const navigate=useNavigate();
 
   const tabs = ['Buy', 'Rent', 'PG / Co-living', 'Plots/Land'];
 
@@ -42,7 +47,7 @@ export const HomePage=()=> {
   const plotTypes = ['Residential Plots/Land', 'Commercial Plots/Land'];
 
   const propertyTypes = selectedTab === 'Plots/Land' ? plotTypes : residentialTypes;
-const [userProperties, setUserProperties] = useState([]);
+  const [userProperties, setUserProperties] = useState([]);
 
 useEffect(() => {
   const fetchProperties = async () => {
@@ -58,7 +63,29 @@ useEffect(() => {
   fetchProperties();
 }, []);
 
-  const toggleType = (type) => {
+
+useEffect(() => {
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const { latitude, longitude } = position.coords;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+      const data = await res.json();
+      const city = data.address.city || data.address.town || data.address.state || '';
+      setUserCity(city);
+      console.log("usercitey......",city)
+
+      // Optional: call API to fetch properties in that city
+      // const res = await fetch(`/properties?city=${city}`);
+      // const result = await res.json();
+      // setUserProperties(result.data || []);
+    } catch (err) {
+      console.error("Failed to get city from coordinates:", err);
+    }
+  });
+}, []);
+
+
+  const toggleType = (type : string) => {
     const updated = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)
       : [...selectedTypes, type];
@@ -163,7 +190,20 @@ useEffect(() => {
 
           <div className="flex items-center flex-grow border border-gray-300 rounded-md px-3 py-2 bg-white focus-within:ring-2 ring-blue-200">
             <Search className="text-gray-400 mr-2" size={16} />
-            <input
+
+            {locationTag && (
+    <div className="flex items-center bg-blue-50 text-blue-600 rounded-full px-2 py-1 text-xs mr-2">
+      <span className="mr-1">Near me</span>
+      <button
+        onClick={() => setLocationTag(null)}
+        className="text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
+      >
+        ×
+      </button>
+    </div>
+  )}
+
+        <input
               type="text"
               placeholder={`Search "${
                 selectedTab === 'Plots/Land'
@@ -175,9 +215,19 @@ useEffect(() => {
           </div>
 
           <div className="flex gap-2">
-            <div className="p-2 rounded-full bg-blue-50 text-blue-600 cursor-pointer hover:bg-blue-100 transition">
-              <Crosshair size={16} />
-            </div>
+          <div className="p-2 rounded-full bg-blue-50 text-blue-600 cursor-pointer hover:bg-blue-100 transition"
+           onClick={() => {
+           navigator.geolocation.getCurrentPosition((position) => {
+           const { latitude, longitude } = position.coords;
+           console.log("Latitude:", latitude);
+  console.log("Longitude:", longitude);
+  console.log("Navigating to:", `/propertiesnearme?lat=${latitude}&lng=${longitude}`);
+           setLocationTag({ lat: latitude, lng: longitude });
+           navigate(`/propertiesnearme?lat=${latitude}&lng=${longitude}`);
+       });
+     }}>
+            <Crosshair size={16} />
+         </div>
             <div className="p-2 rounded-full bg-blue-50 text-blue-600 cursor-pointer hover:bg-blue-100 transition">
               <Mic size={16} />
             </div>
