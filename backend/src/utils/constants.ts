@@ -67,6 +67,8 @@ export const Messages = {
     Otp_Success: 'OTP sent successfully',
     PhoneNumberAndOtp_Required: 'Phone number and OTP are required',
     InvalidOtp_Format:'Invalid OTP format. Must be 4-6 digits',
-    OtpVerification_Success:'OTP verified successfully'
-
+    OtpVerification_Success:'OTP verified successfully',
+ Coordinates_Missing:'Coordinates missing',
+    Fetching_Location_Success:'Locatin fetched successfully',
+    Fetching_Location_Failure:'Location fetched failed'
 }

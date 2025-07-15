@@ -18,7 +18,7 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
-    "@types/node": "^24.0.10",
+    "@types/node": "^24.0.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
@@ -31,6 +31,7 @@
     "firebase-admin": "^13.4.0",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.3",
     "nodemon": "^3.1.10",
     "twilio": "^5.7.1"
   }

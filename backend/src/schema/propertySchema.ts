@@ -340,5 +340,5 @@ villaPropertySchema.pre('save', function (this: VillaProperty, next) {
 });
 
 const VillaPropertyModel = mongoose.model<VillaProperty>('VillaProperty', villaPropertySchema);
-
+villaPropertySchema.index({ location: "2dsphere" });
 export default VillaPropertyModel;
