@@ -28,6 +28,7 @@ interface User extends Document {
     createdBy?: mongoose.Schema.Types.ObjectId;
     updatedBy?: mongoose.Schema.Types.ObjectId;
     isActive: boolean;
+    
 
 }
 

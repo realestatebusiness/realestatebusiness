@@ -18,26 +18,38 @@ const DisplayLoginForm: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const onSubmit = async (data: LoginFormData) => {
-    if (usePhoneLogin && !otpVerified) {
-      toast.error('Please verify OTP before login');
-      return;
+  const formatPhoneNumber = (raw: string): string => {
+    const cleaned = raw.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `+91${cleaned}`;
+    } else if (cleaned.length > 10 && cleaned.startsWith('91')) {
+      return `+${cleaned}`;
     }
-
-    const payload = usePhoneLogin
-      ? { phoneNumber: phone }
-      : { email: data.email, password: data.password };
-
-    try {
-      const res = await postRequest<ApiResponse>("/login", payload);
-      dispatch(login({ user: res.data.user, token: res.data.token }));
-      toast.success("Login successful");
-      navigate('/home')
-    } catch (error) {
-      console.error("error during login", error);
-      toast.error("Login failed");
-    }
+    return `+${cleaned}`;
   };
+
+const onSubmit = async (data: LoginFormData) => {
+  if (usePhoneLogin && !otpVerified) {
+    toast.error('Please verify OTP before login');
+    return;
+  }
+
+  const formattedPhone = formatPhoneNumber(phone);
+  const payload = usePhoneLogin
+    ? { phoneNumber: formattedPhone }
+    : { email: data.email, password: data.password };
+
+  try {
+    const res = await postRequest<ApiResponse>("/login", payload);
+    console.log(res)
+    dispatch(login({ user: res.data.user, token: res.data.token }));
+    toast.success("Login successful");
+    navigate('/home');
+  } catch (error) {
+    console.error("error during login", error);
+    toast.error("Login failed");
+  }
+};
 
   return (
     <div className="space-y-6">
