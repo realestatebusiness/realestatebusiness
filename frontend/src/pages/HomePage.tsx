@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Search, Mic, Crosshair, ChevronDown } from 'react-feather';
+import { useEffect, useState } from "react";
+import { ChevronDown, Crosshair, Mic, Search } from "react-feather";
+import { useNavigate } from "react-router-dom";
 
-const formatCurrency = (value) => {
+// Helper to format currency
+const formatCurrency = (value:any) => {
   if (value >= 1_00_00_000) return `₹${(value / 1_00_00_000).toFixed(2)} Cr`;
   if (value >= 1_00_000) return `₹${(value / 1_00_000).toFixed(1)} L`;
   if (value >= 1_000) return `₹${(value / 1_000).toFixed(0)} K`;
@@ -9,7 +11,7 @@ const formatCurrency = (value) => {
 };
 
 // Helper to format area
-const formatArea = (value) => {
+const formatArea = (value :number) => {
   if (value >= 1000) return `${(value / 1000).toFixed(1)}K+ sqft`;
   return `${value} sqft`;
 };
@@ -17,17 +19,21 @@ const formatArea = (value) => {
 export const HomePage=()=> {
   const [selectedTab, setSelectedTab] = useState('Buy');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [propertyCategory, setPropertyCategory] = useState('All Residential');
-  const [activeFilter, setActiveFilter] = useState(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState([0, 10_00_00_000]); // ₹0 to ₹100 Cr
   const [areaRange, setAreaRange] = useState([0, 1000]); // 0 to 1000+ sqft
-  const [selectedBedrooms, setSelectedBedrooms] = useState([]);
-  const [selectedConstructionStatus, setSelectedConstructionStatus] = useState([]);
-  const [selectedPostedBy, setSelectedPostedBy] = useState([]);
-  const [selectedFurnishing, setSelectedFurnishing] = useState([]);
-  const [selectedSharing, setSelectedSharing] = useState([]);
-  const [selectedAvailableFor, setSelectedAvailableFor] = useState([]);
+  const [selectedBedrooms, setSelectedBedrooms] = useState<string[]>([]);
+  const [selectedConstructionStatus, setSelectedConstructionStatus] = useState<string[]>([]);
+  const [selectedPostedBy, setSelectedPostedBy] = useState<string[]>([]);
+  const [selectedFurnishing, setSelectedFurnishing] = useState<string[]>([]);
+  const [selectedSharing, setSelectedSharing] = useState<string[]>([]);
+  const [selectedAvailableFor, setSelectedAvailableFor] = useState<string[]>([]);
+  const [userCity, setUserCity] = useState('');
+  const [locationTag, setLocationTag] = useState<{ lat: number; lng: number } | null>(null);
+
+  const navigate=useNavigate();
 
   const tabs = ['Buy', 'Rent', 'PG / Co-living', 'Plots/Land'];
 
@@ -41,8 +47,45 @@ export const HomePage=()=> {
   const plotTypes = ['Residential Plots/Land', 'Commercial Plots/Land'];
 
   const propertyTypes = selectedTab === 'Plots/Land' ? plotTypes : residentialTypes;
+  const [userProperties, setUserProperties] = useState([]);
 
-  const toggleType = (type) => {
+useEffect(() => {
+  const fetchProperties = async () => {
+    try {
+      const response = await fetch('/properties?userId=user123');
+      const result = await response.json();
+      setUserProperties(result.data || []);
+    } catch (error) {
+      console.error("Failed to fetch properties:", error);
+    }
+  };
+
+  fetchProperties();
+}, []);
+
+
+useEffect(() => {
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const { latitude, longitude } = position.coords;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+      const data = await res.json();
+      const city = data.address.city || data.address.town || data.address.state || '';
+      setUserCity(city);
+      console.log("usercitey......",city)
+
+      // Optional: call API to fetch properties in that city
+      // const res = await fetch(`/properties?city=${city}`);
+      // const result = await res.json();
+      // setUserProperties(result.data || []);
+    } catch (err) {
+      console.error("Failed to get city from coordinates:", err);
+    }
+  });
+}, []);
+
+
+  const toggleType = (type : string) => {
     const updated = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)
       : [...selectedTypes, type];
@@ -147,7 +190,20 @@ export const HomePage=()=> {
 
           <div className="flex items-center flex-grow border border-gray-300 rounded-md px-3 py-2 bg-white focus-within:ring-2 ring-blue-200">
             <Search className="text-gray-400 mr-2" size={16} />
-            <input
+
+            {locationTag && (
+    <div className="flex items-center bg-blue-50 text-blue-600 rounded-full px-2 py-1 text-xs mr-2">
+      <span className="mr-1">Near me</span>
+      <button
+        onClick={() => setLocationTag(null)}
+        className="text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
+      >
+        ×
+      </button>
+    </div>
+  )}
+
+        <input
               type="text"
               placeholder={`Search "${
                 selectedTab === 'Plots/Land'
@@ -159,9 +215,19 @@ export const HomePage=()=> {
           </div>
 
           <div className="flex gap-2">
-            <div className="p-2 rounded-full bg-blue-50 text-blue-600 cursor-pointer hover:bg-blue-100 transition">
-              <Crosshair size={16} />
-            </div>
+          <div className="p-2 rounded-full bg-blue-50 text-blue-600 cursor-pointer hover:bg-blue-100 transition"
+           onClick={() => {
+           navigator.geolocation.getCurrentPosition((position) => {
+           const { latitude, longitude } = position.coords;
+           console.log("Latitude:", latitude);
+  console.log("Longitude:", longitude);
+  console.log("Navigating to:", `/propertiesnearme?lat=${latitude}&lng=${longitude}`);
+           setLocationTag({ lat: latitude, lng: longitude });
+           navigate(`/propertiesnearme?lat=${latitude}&lng=${longitude}`);
+       });
+     }}>
+            <Crosshair size={16} />
+         </div>
             <div className="p-2 rounded-full bg-blue-50 text-blue-600 cursor-pointer hover:bg-blue-100 transition">
               <Mic size={16} />
             </div>
@@ -456,6 +522,80 @@ export const HomePage=()=> {
           </div>
         )}
       </div>
+      {/* Your Property Postings */}
+{/* User Property Postings */}
+<div className="bg-white rounded-xl shadow-md p-6 max-w-7xl mx-auto mb-8">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-xl font-semibold text-gray-900">Your Property Postings</h2>
+    <a href="#" className="text-blue-600 text-sm font-medium hover:underline">View All</a>
+  </div>
+
+  {userProperties.length === 0 ? (
+    <p className="text-gray-600 text-sm">No properties found.</p>
+  ) : (
+    userProperties.map((property: any) => (
+      <div key={property._id} className="mb-6">
+        <div className="text-sm text-gray-600 mb-2">
+          Manage posting for <br />
+          <span className="font-medium text-gray-800">
+            Property ID - {property._id}, ({property.basicDetails?.propertyType || 'N/A'})
+          </span>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center">
+              <img
+                src={property.media?.[0]?.url || '/placeholder-building.png'}
+                alt="Property"
+                className="w-12 h-12 object-contain"
+              />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">
+                Property ID - <span className="font-medium text-gray-700">{property._id}</span>
+              </p>
+              <h3 className="text-base font-semibold text-gray-900">
+                {property.basicDetails?.propertyTitle || 'Untitled Property'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                in {property.locationDetails?.locality || 'N/A'}, {property.locationDetails?.city || ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-start md:items-end gap-2 mt-4 md:mt-0">
+            <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+              {property.basicDetails?.status || 'Inactive'}
+            </span>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition">
+              Re-activate Posting
+            </button>
+          </div>
+        </div>
+
+        {/* Responses (static for now) */}
+        <div className="border-t pt-4 mt-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-base font-semibold text-gray-900">0 Responses on this posting</h3>
+            <a href="#" className="text-blue-600 text-sm font-medium hover:underline">View all responses</a>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 border rounded-lg p-4 text-center text-gray-500">
+              <h4 className="font-medium text-sm text-gray-700">Buyer Responses</h4>
+              <p className="text-2xl">— —</p>
+            </div>
+            <div className="flex-1 border rounded-lg p-4 text-center text-gray-500">
+              <h4 className="font-medium text-sm text-gray-700">Dealer Responses</h4>
+              <p className="text-2xl">— —</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))
+  )}
+</div>
+
     </div>
   );
 }
