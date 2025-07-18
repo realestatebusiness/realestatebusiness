@@ -30,6 +30,7 @@ const DisplayLoginForm: React.FC = () => {
 
     try {
       const res = await postRequest<ApiResponse>("/login", payload);
+      console.log('res',res.data.user)
       dispatch(login({ user: res.data.user, token: res.data.token }));
       toast.success("Login successful");
       navigate('/home')

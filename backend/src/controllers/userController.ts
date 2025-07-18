@@ -51,6 +51,7 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
 
 const login = async (req: Request, res: Response): Promise<any> => {
     const { email, phoneNumber, password } = req.body;
+    console.log('user',req.body)
     if (!phoneNumber && (!email || !password)) {
         failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
         return
@@ -89,7 +90,7 @@ const login = async (req: Request, res: Response): Promise<any> => {
             secure: true,
             sameSite: 'none'
         });
-        successResponse(res, { token, userId: user._id, user: { name: user.name, role: user.role } }, Messages.Login_Sucess, StatusCode.OK)
+        successResponse(res, { token, userId: user._id, user: { name: user.name, role: user.role,email:user.email,phoneNumber:user.phoneNumber } }, Messages.Login_Sucess, StatusCode.OK)
     }
     catch (error) {
         console.error('Login failed', error);
@@ -97,5 +98,54 @@ const login = async (req: Request, res: Response): Promise<any> => {
     }
 }
 
+const getProfile = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const userId = (req as any).user?.userId; // ✅ From JWT token via middleware
+    console.log('userId from token', userId);
 
-export { registerUser, login }
+    if (!userId) {
+      return failResponse(res, Messages.Not_Authorized_No_Token, StatusCode.Unauthorized);
+    }
+
+    const user = await UserModel.findById(userId).select('-password');
+    if (!user) {
+      return failResponse(res, Messages.User_Not_Found, StatusCode.Not_Found);
+    }
+
+    return successResponse(res, user, Messages.Fetch_Success, StatusCode.OK);
+  } catch (err) {
+    console.error('Get profile failed', err);
+    return failResponse(res, Messages.Server_Error, StatusCode.Internal_Server_Error);
+  }
+};
+
+
+
+const updateProfile = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { email, ...rest } = req.body;
+
+    if (!email) {
+      return failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
+    }
+
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { email },
+      { $set: { ...rest, updatedBy: req.userId, updatedAt: new Date() } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return failResponse(res, Messages.User_Not_Found, StatusCode.Not_Found);
+    }
+
+    return successResponse(res, updatedUser, Messages.Update_Success, StatusCode.OK);
+  } catch (err) {
+    console.error('Update profile failed', err);
+    return failResponse(res, Messages.Server_Error, StatusCode.Internal_Server_Error);
+  }
+};
+
+
+
+export { registerUser, login , getProfile, updateProfile }
