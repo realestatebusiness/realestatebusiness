@@ -34,22 +34,17 @@ const onSubmit = async (data: LoginFormData) => {
     return;
   }
 
-  const formattedPhone = formatPhoneNumber(phone);
-  const payload = usePhoneLogin
-    ? { phoneNumber: formattedPhone }
-    : { email: data.email, password: data.password };
-
-  try {
-    const res = await postRequest<ApiResponse>("/login", payload);
-    console.log(res)
-    dispatch(login({ user: res.data.user, token: res.data.token }));
-    toast.success("Login successful");
-    navigate('/home');
-  } catch (error) {
-    console.error("error during login", error);
-    toast.error("Login failed");
-  }
-};
+    try {
+      const res = await postRequest<ApiResponse>("/login", payload);
+      console.log('res',res.data.user)
+      dispatch(login({ user: res.data.user, token: res.data.token }));
+      toast.success("Login successful");
+      navigate('/home')
+    } catch (error) {
+      console.error("error during login", error);
+      toast.error("Login failed");
+    }
+  };
 
   return (
     <div className="space-y-6">

@@ -1,8 +1,10 @@
 import express from 'express'
-import {login, registerUser} from '../controllers/userController'
+import {login, registerUser, getProfile, updateProfile } from '../controllers/userController'
 import { sendOtp, verifyFirebaseOtpToken } from '../controllers/otpController';
 import { createProperty, getAllProperties } from '../controllers/propertyController';
+
 import { nearByLocation } from '../controllers/nearByLocation';
+import authenticate from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -16,5 +18,9 @@ router.post('/createProperty', createProperty);
 
 router.get('/getProperties', getAllProperties);
 router.get("/nearby", nearByLocation);
+
+router.get('/profile', authenticate, getProfile);
+router.post('/profile/update', updateProfile);
+
 
 export default router;
