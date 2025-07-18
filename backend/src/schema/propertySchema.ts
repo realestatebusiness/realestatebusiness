@@ -32,7 +32,7 @@ interface VillaProperty extends Document {
             totalFloors?: number;
             propertyOnFloor?: number;
         };
-        availabilityStatus?: 'ready_to_move' | 'under_construction';
+        availabilityStatus?: 'ready_to_move' | 'under_construction'|'new launch';
         ageOfProperty?: '0_1_year' | '1_5_years' | '5_10_years' | '10_plus_years';
         ownership?: 'freehold' | 'leasehold' | 'cooperative_society' | 'power_of_attorney';
         priceDetails?: {

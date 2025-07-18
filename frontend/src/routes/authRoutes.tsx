@@ -1,10 +1,5 @@
-import {
-  Navigate,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-} from "react-router-dom";
-import { LoginPage, RegisterPage } from "../pages";
+import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { LoginPage, Plp, RegisterPage } from "../pages";
 import PropertyPage from "../components/PropertyPage";
 import Filters from "../pages/Filters";
 import { HomePage } from "../pages/HomePage";

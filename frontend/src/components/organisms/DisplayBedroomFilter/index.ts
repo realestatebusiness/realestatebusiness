@@ -1,0 +1,1 @@
+export {default as DisplayBedroomFilter}from './DisplayBedroomFilter' 

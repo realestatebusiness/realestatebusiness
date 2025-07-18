@@ -14,25 +14,22 @@ export enum Status {
   Deleted = "deleted",
 }
 interface User extends Document {
-  _id: mongoose.Types.ObjectId;
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber: string;
-  role: UserRole[];
-  favoriteProducts: mongoose.Types.ObjectId[];
-  status: Status;
-  version: number;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy?: mongoose.Schema.Types.ObjectId;
-  updatedBy?: mongoose.Schema.Types.ObjectId;
-  isActive: boolean;
-  city: String;
-  landline: String;
-  address: String;
-  profilePhoto: String;
-  companyLogo: String;
+    _id: mongoose.Types.ObjectId;
+    name: string;
+    email: string;
+    password: string;
+    phoneNumber: string;
+    role: UserRole[];
+    favoriteProducts: mongoose.Types.ObjectId[];
+    status: Status;
+    version: number;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy?: mongoose.Schema.Types.ObjectId;
+    updatedBy?: mongoose.Schema.Types.ObjectId;
+    isActive: boolean;
+    
+
 }
 
 const userSchema: Schema = new Schema(
