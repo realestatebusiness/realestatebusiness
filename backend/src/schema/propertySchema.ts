@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface VillaProperty extends Document {
-    userId: string;
     userName: string;
     userEmail: string;
     propertyId: string;
@@ -77,7 +76,6 @@ interface VillaProperty extends Document {
 }
 
 const villaPropertySchema = new mongoose.Schema<VillaProperty>({
-    userId: { type: String, required: true },
     userName: { type: String, required: true },
     userEmail: { type: String, required: true },
     basicDetails: {
@@ -308,7 +306,6 @@ const villaPropertySchema = new mongoose.Schema<VillaProperty>({
     timestamps: true
 });
 
-villaPropertySchema.index({ userId: 1 });
 villaPropertySchema.index({ propertyId: 1 });
 villaPropertySchema.index({ 'locationDetails.city': 1, 'locationDetails.locality': 1 });
 villaPropertySchema.index({ 'basicDetails.lookingFor': 1 });

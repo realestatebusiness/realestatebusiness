@@ -1,123 +1,219 @@
 import React, { useState } from "react";
-import { CheckCircle } from "react-feather";
+import { User, ChevronDown, Menu as MenuIcon, HelpCircle } from "react-feather";
+import Sidebar from "../../pages/Sidebar";
+import { MainNav } from "../organisms/MainNav";
+import MegaMenuPanel from "../organisms/MegaMenuPanel/MegaMenuPanel";
+import {
+  buyersMegaMenu,
+  ownersMegaMenu,
+  tenantsMegaMenu,
+} from "../../data/MegaMenuDefinition";
+import { useAppSelector } from "../../app/hooks";
+import type { RootState } from "../../app/store";
+import { ExploreModal } from "../organisms/ExploreModal";
+interface HeaderProps {
+  onBuyersMenuToggle?: (isOpen: boolean) => void;
+}
 
-const Header = () => {
-  const [showDropdown, setShowDropdown] = useState(null);
+const Header: React.FC<HeaderProps> = () => {
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [buyersMenuOpen, setBuyersMenuOpen] = useState(false);
+  const [tenantsMenuOpen, setTenantsMenuOpen] = useState(false);
+  const [ownersMenuOpen, setOwnersMenuOpen] = useState(false);
+
+  const user = useAppSelector((state: RootState) => state.auth.user);
+  const loggedIn = !!user;
+  const [isExploreModalOpen, setExploreModalOpen] = useState(false);
+
+  const toggleSidebar = () => setSidebarOpen((v) => !v);
+  const closeSidebar = () => setSidebarOpen(false);
+
+  const toggleBuyersMenu = () => {
+    setBuyersMenuOpen((v) => !v);
+    setTenantsMenuOpen(false);
+    setOwnersMenuOpen(false);
+  };
+  const toggleTenantsMenu = () => {
+    setTenantsMenuOpen((v) => !v);
+    setBuyersMenuOpen(false);
+    setOwnersMenuOpen(false);
+  };
+  const toggleOwnersMenu = () => {
+    setOwnersMenuOpen((v) => !v);
+    setTenantsMenuOpen(false);
+    setBuyersMenuOpen(false);
+  };
+
+  // **Dynamic Label**
+  const leftSelectorLabel = loggedIn ? "Property Postings" : "Buy in Hyderabad";
+
+  const handleLeftSelectorClick = () => {
+    if (loggedIn) {
+      // Logic for logged-in users
+    } else {
+      if (leftSelectorLabel === "Buy in Hyderabad") {
+        setExploreModalOpen(true);
+      }
+    }
+  };
+
+  const closeExploreModal = () => {
+    setExploreModalOpen(false);
+  };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="text-2xl font-bold text-blue-600">Real Estate</div>
+    <>
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-screen-xl mx-auto px-4 py-3 relative">
+          <div className="flex items-center justify-between">
+            {/* Left Section */}
+            <div className="flex items-center space-x-8">
+              <div className="text-2xl font-bold text-blue-600">RealEstate</div>
 
-        {/* Navigation */}
-        <nav className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
-          {/* For Buyers */}
-          <div
-            className="relative"
-            onMouseEnter={() => setShowDropdown("buyers")}
-            onMouseLeave={() => setShowDropdown(null)}
-          >
-            <a href="#" className="hover:text-blue-600 px-2 py-1 rounded transition-colors">
-              For Buyers
-            </a>
+              {/* Left Selector */}
+              <button
+                onClick={handleLeftSelectorClick}
+                className="flex items-center space-x-1 text-sm text-gray-700 font-medium"
+              >
+                <span>{leftSelectorLabel}</span>
+                {!loggedIn && <ChevronDown size={14} className="text-gray-600" />}
+              </button>
+            </div>
 
-            {showDropdown === "buyers" && (
-              <div className="absolute left-0 mt-3 w-[520px] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-6 flex">
-                {/* Left Column */}
-                <div className="w-1/2 pr-6 border-r border-gray-100">
-                  <h4 className="text-xs font-semibold text-gray-400 uppercase mb-3 tracking-wider">
-                    Properties in Hyderabad
-                  </h4>
-                  <ul className="space-y-2">
-                    <li><a href="#" className="block hover:text-blue-600 transition">Flats</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">Builder Floors</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">Independent House</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">Plots in Hyderabad</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">Serviced Apartments</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">Studio Apartments/1 RK Flats</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">Farm Houses</a></li>
-                  </ul>
-                  <h4 className="mt-6 text-xs font-semibold text-gray-400 uppercase mb-3 tracking-wider">
-                    Popular Searches
-                  </h4>
-                  <ul className="space-y-2">
-                    <li><a href="#" className="block hover:text-blue-600 transition">Property in Hyderabad</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">Verified Property in Hyderabad</a></li>
-                    <li><a href="#" className="block hover:text-blue-600 transition">New Projects in Hyderabad</a></li>
-                  </ul>
-                </div>
+            {/* Center Navigation */}
+            <MainNav
+              onBuyersToggle={toggleBuyersMenu}
+              onTenantsToggle={toggleTenantsMenu}
+              onOwnersToggle={toggleOwnersMenu}
+            />
 
-                {/* Right Column - Insights */}
-                <div className="w-1/2 pl-6 flex flex-col justify-between">
-                  <div className="bg-blue-50 rounded-lg p-5 shadow-inner">
-                    <div className="flex items-center mb-3">
-                      <CheckCircle className="h-6 w-6 text-blue-600 mr-2" />
-                      <span className="font-bold text-blue-700 text-lg">Insights</span>
-                    </div>
-                    <ul className="mt-2 space-y-2 text-sm text-blue-700">
-                      <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" />Understand localities</li>
-                      <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" />Read Resident Reviews</li>
-                      <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" />Check Price Trends</li>
-                      <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" />Tools, Utilities & more</li>
-                    </ul>
+            {/* Right Section */}
+            <div className="flex items-center space-x-4 relative">
+              {/* Post Property Button */}
+              <button
+                onClick={() => (window.location.href = "/createProperty")}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center space-x-1"
+              >
+                <span>Post property</span>
+                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded font-semibold">
+                  FREE
+                </span>
+              </button>
+
+              {/* Help Icon */}
+              <HelpCircle className="w-5 h-5 text-gray-600 hover:text-blue-600 cursor-pointer" />
+
+              {/* Profile Dropdown */}
+              <div className="flex items-center space-x-2 relative">
+                {loggedIn && user?.name ? (
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold text-sm">
+                    {user.name.charAt(0).toUpperCase()}
                   </div>
-                </div>
+                ) : (
+                  <User className="w-6 h-6 text-gray-700" />
+                )}
+                <ChevronDown
+                  className="w-4 h-4 text-gray-600 hover:text-blue-600 cursor-pointer"
+                  onClick={() => setProfileDropdownOpen((v) => !v)}
+                />
+
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 z-50 p-4 top-[50px]">
+                    {loggedIn ? (
+                      <>
+                        <div className="text-base font-semibold text-gray-900 mb-3">
+                          {user.name}
+                        </div>
+
+                        <div className="text-xs text-gray-500 uppercase font-semibold mb-2">
+                          My Activity
+                        </div>
+                        <ul className="space-y-2 text-sm text-gray-700 mb-4">
+                          <li className="hover:text-blue-600 cursor-pointer">Recently Searched</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Recently Viewed</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Shortlisted</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Contacted</li>
+                        </ul>
+
+                        <ul className="space-y-2 text-sm text-gray-700">
+                          <li className="hover:text-blue-600 cursor-pointer">My99acres</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Manage Listings</li>
+                          <li className="hover:text-blue-600 cursor-pointer">View All Responses</li>
+                          <li className="hover:text-blue-600 cursor-pointer flex items-center justify-between">
+                            <span>Manage BOSS</span>
+                            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded font-semibold">
+                              NEW
+                            </span>
+                          </li>
+                          <li className="hover:text-blue-600 cursor-pointer">Lead Search</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Modify Profile</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Change Password</li>
+                          <li className="hover:text-blue-600 cursor-pointer">
+                            <a href="/logout">Logout</a>
+                          </li>
+                        </ul>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-sm font-semibold text-blue-500 mb-3">
+                          <a href="/login">LOGIN / REGISTER</a>
+                        </div>
+                        <div className="text-xs text-gray-500 uppercase font-semibold mb-2">
+                          My Activity
+                        </div>
+                        <ul className="space-y-2 text-sm text-gray-700 mb-3">
+                          <li className="hover:text-blue-600 cursor-pointer">Recently Searched</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Recently Viewed</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Shortlisted</li>
+                          <li className="hover:text-blue-600 cursor-pointer">Contacted</li>
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Sidebar Menu */}
+              <MenuIcon
+                className="w-5 h-5 text-gray-600 hover:text-blue-600 cursor-pointer"
+                onClick={toggleSidebar}
+              />
+            </div>
           </div>
 
-          {/* For Tenants */}
-          <a href="#" className="hover:text-blue-600">For Tenants</a>
-
-          {/* For Owners */}
-          <div
-            className="relative"
-            onMouseEnter={() => setShowDropdown("owners")}
-            onMouseLeave={() => setShowDropdown(null)}
-          >
-            <a href="#" className="hover:text-blue-600 px-2 py-1 rounded transition-colors">
-              For Owners
-            </a>
-
-            {showDropdown === "owners" && (
-              <div className="absolute left-0 mt-3 w-[600px] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-6 flex">
-                {/* Left Column */}
-                <div className="w-1/2 pr-6">
-                  <h4 className="text-xs font-semibold text-gray-400 uppercase mb-3 tracking-wider">
-                    Owner Offerings
-                  </h4>
-                  <ul className="space-y-3 text-sm">
-                    <li><a href="#" className="block hover:text-blue-600">Post Property for Free</a></li>
-                    <li><a href="#" className="block hover:text-blue-600">Owner Services</a></li>
-                    <li><a href="#" className="block hover:text-blue-600">My99acres</a></li>
-                    <li><a href="#" className="block hover:text-blue-600">View Responses</a></li>
-                  </ul>
-                </div>
-
-                {/* Right Column - Image */}
-                <div className="w-1/2 pl-6 flex items-center justify-center">
-                  <img
-                    src="/images/owners-laptop.png"
-                    alt="Owners using laptop"
-                    className="rounded-md w-full h-auto object-cover"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </nav>
-
-        {/* Right Buttons */}
-        <div className="flex items-center space-x-4">
-          <a href="/createProperty" className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-            Post Property
-          </a>
-          <a className="text-sm font-medium text-gray-700 hover:text-blue-600" href="/login">
-            Login / Signup
-          </a>
+          {/* Mega Menus */}
+          <MegaMenuPanel
+            isOpen={buyersMenuOpen}
+            onClose={() => setBuyersMenuOpen(false)}
+            data={buyersMegaMenu}
+          />
+          <MegaMenuPanel
+            isOpen={tenantsMenuOpen}
+            onClose={() => setTenantsMenuOpen(false)}
+            data={tenantsMegaMenu}
+          />
+          <MegaMenuPanel
+            isOpen={ownersMenuOpen}
+            onClose={() => setOwnersMenuOpen(false)}
+            data={ownersMegaMenu}
+          />
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+      <button onClick={handleLeftSelectorClick}>Check Modal</button>
+
+      {/* Show modal only when leftSelectorLabel matches */}
+      {leftSelectorLabel === "Buy in Hyderabad" && (
+        <ExploreModal
+          isOpen={isExploreModalOpen}
+          onClose={() => setExploreModalOpen(false)}
+        />
+      )}
+
+    </>
   );
 };
 

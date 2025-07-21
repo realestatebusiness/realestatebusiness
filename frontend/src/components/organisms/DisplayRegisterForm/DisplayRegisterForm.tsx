@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import Button from "../../atoms/Button";
 import { postRequest } from "../../../services/endpoints";
 import type { ApiResponse, RegistrationFormData } from "../../../types/authTypes";
 import toast from "react-hot-toast";
 import { RegisterFormFields } from "../../molecules/RegisterFormFields";
 import DisplayOtpVerification from "../../molecules/OtpFile/DisplayOtpVerification";
 import { useNavigate } from "react-router-dom";
+import { Button } from "../../atoms/Button";
 
 const DisplayRegisterForm: React.FC = () => {
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<RegistrationFormData>();

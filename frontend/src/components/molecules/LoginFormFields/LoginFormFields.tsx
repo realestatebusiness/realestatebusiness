@@ -1,7 +1,7 @@
 import React from "react";
-import InputField from "../../atoms/InputField";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { LoginFormData } from "../../../types/authTypes";
+import { InputField } from "../../atoms/InputField";
 
 interface LoginFormFieldsProps {
   register: UseFormRegister<LoginFormData>;

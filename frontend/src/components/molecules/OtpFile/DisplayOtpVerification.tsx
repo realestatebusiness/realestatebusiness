@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import OtpInput from 'react-otp-input';
-import InputField from '../../atoms/InputField';
-import Button from '../../atoms/Button';
 import toast from 'react-hot-toast';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { postRequest } from '../../../services/endpoints';
 import { auth } from '../../../utils/firebase';
+import { InputField } from '../../atoms/InputField';
+import { Button } from '../../atoms/Button';
 
 interface OtpVerificationProps {
   phone: string;

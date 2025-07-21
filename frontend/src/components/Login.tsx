@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+import { useAppDispatch } from '../app/hooks';
+import { login } from '../features/auth/authSlice';
 
 const Login = () => {
+  const dispatch = useAppDispatch();
+
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState('');
@@ -87,8 +91,6 @@ const Login = () => {
         setMessage(data.message || 'Success!');
 
         if (isLogin && data.success) {
-          console.log('Login successful:', data.data);
-
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => {
@@ -101,6 +103,12 @@ const Login = () => {
             );
           }
         }
+        dispatch(
+        login({
+          user: { name: data.user.username, email: data.user.email },
+          token: data.token,
+        })
+      );
       } else {
         setMessage(data.message || 'Something went wrong');
       }

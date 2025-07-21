@@ -28,7 +28,6 @@ const uploadMediaFile = async (file: string, index: number) => {
 export const createProperty = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
-      userId,
       userName,
       userEmail,
       basicDetails,
@@ -38,7 +37,6 @@ export const createProperty = async (req: Request, res: Response): Promise<void>
       media,
       amenities
     } = req.body;
-
     if (!media || !Array.isArray(media)) {
       failResponse(res,Messages.Invalid_Images_Format,StatusCode.Bad_Request)
       return;
@@ -47,7 +45,6 @@ export const createProperty = async (req: Request, res: Response): Promise<void>
     const uploadedMedia = await Promise.all(media.map(uploadMediaFile));
 
     const newProperty = new VillaPropertyModel({
-      userId,
       userName,
       userEmail,
       basicDetails,
@@ -63,9 +60,7 @@ export const createProperty = async (req: Request, res: Response): Promise<void>
     successResponse(res,{data:savedProperty},Messages.Property_Creation_Success,StatusCode.Created)
 
   } catch (error: any) {
-    console.error("Create Property Error:", error.message);
-    failResponse(res,Messages.Property_Creation_Failed,StatusCode.Internal_Server_Error)
-    
+    failResponse(res,Messages.Property_Creation_Failed,StatusCode.Internal_Server_Error)    
   }
 };
 

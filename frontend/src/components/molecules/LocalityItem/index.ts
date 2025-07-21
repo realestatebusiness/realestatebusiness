@@ -1,0 +1,1 @@
+export {default as LocalityItem} from "./LocalityItem";
