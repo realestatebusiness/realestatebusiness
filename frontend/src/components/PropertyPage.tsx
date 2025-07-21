@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import LocationAutocomplete from './LocationAutocomplete';
-import { postRequest } from '../services/endpoints';
+import { getRequest, postRequest } from '../services/endpoints';
 import { toast } from 'react-toastify';
+import type { RootState } from '../app/store';
+import { useAppSelector } from '../app/hooks';
+import { FormModal } from './organisms/FormModal';
+import type { PropertyApiResponse } from '../types/propertyInterface.';
 
 const PropertyPage = () => {
+  const user = useAppSelector((state: RootState) => state.auth.user);
+  console.log("console user : ",user);
   const [currentStep, setCurrentStep] = useState(1);
   const [areaUnit, setAreaUnit] = useState('sq_feet');
   const [propertyTitle, setPropertyTitle] = useState('');
@@ -36,6 +42,36 @@ const PropertyPage = () => {
   const [ageOfProperty, setAgeOfProperty] = useState('');
   const [ownership, setOwnership] = useState('');
   const [areaValue, setAreaValue] = useState('');
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userPropertiesCount, setUserPropertiesCount] = useState<number | null>(null);
+
+useEffect(() => {
+    const fetchUserProperties = async () => {
+      console.log(" user user : ",user);
+      console.log("user.email : ",user?.email);
+
+      if (!user?.email) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const properties = await getRequest<PropertyApiResponse[]>(`/properties?userEmail=${encodeURIComponent(user.email)}`, {});
+        console.log("properties properties : ",properties);
+        setUserPropertiesCount(properties.length);
+        
+        setShowFormModal(properties.length === 0);
+      } catch (error) {
+        console.error('Error fetching user properties:', error);
+        setUserPropertiesCount(0);
+        setShowFormModal(true); 
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProperties();
+  }, [user?.email]);
 
   const residentialOptions = [
     { value: 'flat_apartment', label: 'Flat/Apartment' },
@@ -133,12 +169,10 @@ const PropertyPage = () => {
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-
+console.log("user.name : ",user?.name);
     const propertyDetails = {
-      userId: "user123",
-      userName: "Sulaxana",
-      userEmail: "sulaxana@example.com",
+     userName:user?.name, 
+      userEmail: user?.email,
       propertyTitle,
       basicDetails: {
         lookingFor: lookingTo,
@@ -203,6 +237,7 @@ const PropertyPage = () => {
     };
 
     try {
+      console.log("propertyDetails propertyDetails : ",propertyDetails);
       const response = await postRequest('/createProperty', propertyDetails);
       toast.success("Property Successfully Created!");
     } catch (error) {
@@ -1083,7 +1118,16 @@ const PropertyPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         <div className="fixed left-0 top-95px w-80 bg-white shadow-sm p-6 z-20">
-          <StepIndicator
+      {showFormModal && (
+        <FormModal 
+          onClose={() => setShowFormModal(false)}
+          onSuccess={() => {
+            setShowFormModal(false);
+            setUserPropertiesCount(prev => (prev || 0) + 1);
+          }}
+        />
+      )}
+                <StepIndicator
             stepNumber="1"
             title="Basic Details"
             subtitle={getStepSubtitle(1)}

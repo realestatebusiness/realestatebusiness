@@ -26,6 +26,7 @@ const Button: React.FC<ButtonProps> = ({
         primary: 'bg-blue-600 hover:bg-blue-700',
         secondary: 'bg-gray-400 hover:bg-gray-500',
         danger: 'bg-red-600 hover:bg-red-700',
+        warning:'bg-orange-600 hover:bg-orange-700'
     };
 
     const buttonClassName = overrideStyles

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Dropdown from "../../atoms/Dropdown/Dropdown";
 import { DisplayBudgetSlider } from "../../molecules/DisplayBudgetSlider";
-import Button from "../../atoms/Button";
 
 const generateBudgetOptions = (): string[] => {
   const options: string[] = [];

@@ -1,0 +1,1 @@
+export {default as PostPropertySection} from "./PostPropertySection";

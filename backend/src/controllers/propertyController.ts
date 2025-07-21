@@ -28,7 +28,6 @@ const uploadMediaFile = async (file: string, index: number) => {
 export const createProperty = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
-      userId,
       userName,
       userEmail,
       basicDetails,
@@ -47,7 +46,6 @@ console.log('req.body',req.body)
     const uploadedMedia = await Promise.all(media.map(uploadMediaFile));
 
     const newProperty = new VillaPropertyModel({
-      userId,
       userName,
       userEmail,
       basicDetails,
@@ -63,9 +61,7 @@ console.log('req.body',req.body)
     successResponse(res,{data:savedProperty},Messages.Property_Creation_Success,StatusCode.Created)
 
   } catch (error: any) {
-    console.error("Create Property Error:", error.message);
-    failResponse(res,Messages.Property_Creation_Failed,StatusCode.Internal_Server_Error)
-    
+    failResponse(res,Messages.Property_Creation_Failed,StatusCode.Internal_Server_Error)    
   }
 };
 
