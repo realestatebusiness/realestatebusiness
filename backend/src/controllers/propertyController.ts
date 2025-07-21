@@ -37,6 +37,7 @@ export const createProperty = async (req: Request, res: Response): Promise<void>
       media,
       amenities
     } = req.body;
+console.log('req.body',req.body)
     if (!media || !Array.isArray(media)) {
       failResponse(res,Messages.Invalid_Images_Format,StatusCode.Bad_Request)
       return;

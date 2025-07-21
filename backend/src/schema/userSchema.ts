@@ -1,17 +1,17 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export enum UserRole {
-    Admin = 'admin',
-    Buyer = 'buyer',
-    Owner = 'owner',
-    Tenant = 'tenant',
-    Agent = 'agent',
-    Builder = 'builder'
+  Admin = "admin",
+  Buyer = "buyer",
+  Owner = "owner",
+  Tenant = "tenant",
+  Agent = "agent",
+  Builder = "builder",
 }
 export enum Status {
-    Active = 'active',
-    InActive = 'inactive',
-    Deleted = 'deleted',
+  Active = "active",
+  InActive = "inactive",
+  Deleted = "deleted",
 }
 interface User extends Document {
     _id: mongoose.Types.ObjectId;
@@ -28,29 +28,50 @@ interface User extends Document {
     createdBy?: mongoose.Schema.Types.ObjectId;
     updatedBy?: mongoose.Schema.Types.ObjectId;
     isActive: boolean;
+    
 
 }
 
-const userSchema: Schema = new Schema({
+const userSchema: Schema = new Schema(
+  {
     name: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
     phoneNumber: { type: String, required: true },
     role: { type: [String], enum: Object.values(UserRole), requred: true },
-    favoriteProducts: [{
+    favoriteProducts: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Property"
-    }],
-    status: { type: String, enum: Object.values(Status), default: Status.Active },
+        ref: "Property",
+      },
+    ],
+    status: {
+      type: String,
+      enum: Object.values(Status),
+      default: Status.Active,
+    },
     version: { type: Number, default: 1 },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     isActive: { type: Boolean, default: true },
-},
-{
-    timestamps:true
-});
 
-const UserModel=mongoose.model<User>('User',userSchema);
+    // fields for profile update
+    city: { type: String },
+    landline: { type: String },
+    address: { type: String },
+    profilePhoto: { type: String },
+
+    companyLogo: { type: String },
+    location: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Property",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const UserModel = mongoose.model<User>("User", userSchema);
 
 export default UserModel;

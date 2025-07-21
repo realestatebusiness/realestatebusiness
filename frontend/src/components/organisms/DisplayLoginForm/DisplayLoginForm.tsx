@@ -18,18 +18,25 @@ const DisplayLoginForm: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const onSubmit = async (data: LoginFormData) => {
-    if (usePhoneLogin && !otpVerified) {
-      toast.error('Please verify OTP before login');
-      return;
+  const formatPhoneNumber = (raw: string): string => {
+    const cleaned = raw.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `+91${cleaned}`;
+    } else if (cleaned.length > 10 && cleaned.startsWith('91')) {
+      return `+${cleaned}`;
     }
+    return `+${cleaned}`;
+  };
 
-    const payload = usePhoneLogin
-      ? { phoneNumber: phone }
-      : { email: data.email, password: data.password };
+const onSubmit = async (data: LoginFormData) => {
+  if (usePhoneLogin && !otpVerified) {
+    toast.error('Please verify OTP before login');
+    return;
+  }
 
     try {
       const res = await postRequest<ApiResponse>("/login", payload);
+      console.log('res',res.data.user)
       dispatch(login({ user: res.data.user, token: res.data.token }));
       toast.success("Login successful");
       navigate('/home')

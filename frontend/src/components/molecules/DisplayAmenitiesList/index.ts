@@ -1,0 +1,1 @@
+export {default as DisplayAmenitiesList}from './DisplayAmenitiesList'

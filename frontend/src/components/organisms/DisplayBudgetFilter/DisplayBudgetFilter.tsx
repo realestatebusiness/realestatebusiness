@@ -5,7 +5,7 @@ import { DisplayBudgetSlider } from "../../molecules/DisplayBudgetSlider";
 const generateBudgetOptions = (): string[] => {
   const options: string[] = [];
 
-  for (let i = 5; i <= 100; i += 5) {
+  for (let i = 0; i <= 100; i += 5) {
     if (i < 100) {
       options.push(`${i} Lacs`);
     } else {
@@ -61,12 +61,14 @@ const formatLabel = (value: number): string => {
 };
 
 const DisplayBudgetFilter: React.FC = () => {
-  const [min, setMin] = useState(0);     
-const [max, setMax] = useState(10000);
+  const [min, setMin] = useState(budgetValues[0]); // 0 Lacs
+  const [max, setMax] = useState(budgetValues[budgetValues.length - 1]);
+  const [isDefault, setIsDefault] = useState(true);
 
   const handleSliderChange = (newMin: number, newMax: number) => {
     setMin(newMin);
     setMax(newMax);
+    setIsDefault(false);
   };
 
   const handleMinDropdown = (val: string) => {
@@ -76,6 +78,7 @@ const [max, setMax] = useState(10000);
     const newMinIndex = Math.min(findClosestOptionIndex(newMin), maxIndex - 1);
     const validMin = budgetValues[Math.max(0, newMinIndex)];
     setMin(validMin);
+    setIsDefault(false);
   };
 
   const handleMaxDropdown = (val: string) => {
@@ -85,19 +88,20 @@ const [max, setMax] = useState(10000);
     const newMaxIndex = Math.max(findClosestOptionIndex(newMax), minIndex + 1);
     const validMax = budgetValues[Math.min(budgetValues.length - 1, newMaxIndex)];
     setMax(validMax);
+    setIsDefault(false);
   };
 
   const handleClear = () => {
     setMin(budgetValues[0]);
     setMax(budgetValues[budgetValues.length - 1]);
+    setIsDefault(true);
   };
 
   const handleApply = () => {
     console.log('Applied budget filter:', { min: formatLabel(min), max: formatLabel(max) });
-    // Add your apply logic here
   };
 
-  const isCleared = min === budgetValues[0] && max === budgetValues[budgetValues.length - 1];
+  const isCleared = min === budgetValues[0] && max === budgetValues[budgetValues.length - 1] && isDefault;
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -125,7 +129,7 @@ const [max, setMax] = useState(10000);
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">Min Budget</label>
           <Dropdown
-            value={formatLabel(min)}
+            value={isDefault ? "" : formatLabel(min)}
             options={budgetOptions}
             onChange={handleMinDropdown}
             placeholder="Min Budget"
@@ -134,16 +138,13 @@ const [max, setMax] = useState(10000);
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">Max Budget</label>
           <Dropdown
-            value={formatLabel(max)}
+            value={isDefault ? "" : formatLabel(max)}
             options={budgetOptions}
             onChange={handleMaxDropdown}
             placeholder="Max Budget"
           />
         </div>
       </div>
-
-      
-      
     </div>
   );
 };

@@ -109,7 +109,6 @@ export const verifyFirebaseOtpToken = async (
   }
 };
 
-// Alternative endpoint for sending OTP (if you want to handle it on backend)
 export const sendOtp = async (req: Request, res: Response): Promise<void> => {
   try {
     const { phoneNumber } = req.body;
@@ -119,8 +118,6 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Note: Firebase doesn't support sending OTP from backend
-    // You would need to use a service like Twilio for backend OTP sending
     
     successResponse(
       res,

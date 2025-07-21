@@ -17,20 +17,23 @@ const LoginFormFields: React.FC<LoginFormFieldsProps> = ({
   return (
     <>
       {usePhoneLogin ? (
-        <InputField
-          label="Phone Number"
-          type="tel"
-          name="phoneNumber"
-          maxLength={10}
-          register={register("phoneNumber", {
-            required: "Phone number is required",
-            pattern: {
-              value: /^[0-9]{10}$/,
-              message: "Phone number must be 10 digits",
-            },
-          })}
-          error={errors.phoneNumber?.message}
-        />
+           <InputField
+                label="Phone Number"
+                name="phoneNumber"
+                type="tel"
+                maxLength={10}
+                required
+                prependText="+91"
+                register={register('phoneNumber', {
+                    required: 'Phone number is required',
+                    pattern: {
+                        value: /^\d{10}$/,
+                        message: 'Enter a valid 10-digit number',
+                    },
+                })}
+                error={errors.phoneNumber?.message}
+            />
+
       ) : (
         <>
           <InputField

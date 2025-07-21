@@ -115,8 +115,9 @@ export interface VillaProperty extends Document {
 }
 
 export interface PropertyApiResponse {
-  success: boolean;
-  count?: number;
-  data: VillaProperty[];
+  status: string;
   message?: string;
+  data: {
+    data: VillaProperty[];
+  };
 }

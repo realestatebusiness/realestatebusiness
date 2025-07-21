@@ -1,67 +1,17 @@
-import React, { useState } from "react";
-import { User, ChevronDown, Menu as MenuIcon, HelpCircle } from "react-feather";
-import Sidebar from "../../pages/Sidebar";
-import { MainNav } from "../organisms/MainNav";
-import MegaMenuPanel from "../organisms/MegaMenuPanel/MegaMenuPanel";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  buyersMegaMenu,
-  ownersMegaMenu,
-  tenantsMegaMenu,
-} from "../../data/MegaMenuDefinition";
+  CheckCircle,
+  Headphones,
+  User,
+  ChevronDown,
+  Menu,
+  ChevronRight,
+} from "react-feather";
 import { useAppSelector } from "../../app/hooks";
 import type { RootState } from "../../app/store";
-import { ExploreModal } from "../organisms/ExploreModal";
-interface HeaderProps {
-  onBuyersMenuToggle?: (isOpen: boolean) => void;
-}
+import { useNavigate } from "react-router-dom";
 
-const Header: React.FC<HeaderProps> = () => {
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [buyersMenuOpen, setBuyersMenuOpen] = useState(false);
-  const [tenantsMenuOpen, setTenantsMenuOpen] = useState(false);
-  const [ownersMenuOpen, setOwnersMenuOpen] = useState(false);
-
-  const user = useAppSelector((state: RootState) => state.auth.user);
-  const loggedIn = !!user;
-  const [isExploreModalOpen, setExploreModalOpen] = useState(false);
-
-  const toggleSidebar = () => setSidebarOpen((v) => !v);
-  const closeSidebar = () => setSidebarOpen(false);
-
-  const toggleBuyersMenu = () => {
-    setBuyersMenuOpen((v) => !v);
-    setTenantsMenuOpen(false);
-    setOwnersMenuOpen(false);
-  };
-  const toggleTenantsMenu = () => {
-    setTenantsMenuOpen((v) => !v);
-    setBuyersMenuOpen(false);
-    setOwnersMenuOpen(false);
-  };
-  const toggleOwnersMenu = () => {
-    setOwnersMenuOpen((v) => !v);
-    setTenantsMenuOpen(false);
-    setBuyersMenuOpen(false);
-  };
-
-  // **Dynamic Label**
-  const leftSelectorLabel = loggedIn ? "Property Postings" : "Buy in Hyderabad";
-
-  const handleLeftSelectorClick = () => {
-    if (loggedIn) {
-      // Logic for logged-in users
-    } else {
-      if (leftSelectorLabel === "Buy in Hyderabad") {
-        setExploreModalOpen(true);
-      }
-    }
-  };
-
-  const closeExploreModal = () => {
-    setExploreModalOpen(false);
-  };
-
+const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
     <>
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -216,5 +166,4 @@ const Header: React.FC<HeaderProps> = () => {
     </>
   );
 };
-
 export default Header;

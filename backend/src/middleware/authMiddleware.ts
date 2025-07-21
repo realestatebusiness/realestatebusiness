@@ -1,25 +1,28 @@
-import { NextFunction, Request, Response } from "express";
-import { JWT_TOKEN_NAME, Messages } from "../utils/constants";
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config/db";
+import { Request, Response, NextFunction } from "express";
 import { failResponse } from "../utils/response";
 import { StatusCode } from "../utils/statusCode";
-import jwt from 'jsonwebtoken';
-import { JwtPayload } from "../interfaces/express";
-const authenticate= async (req:Request,res:Response,next:NextFunction):Promise<any>=>{
-    const token=req.cookies[`${JWT_TOKEN_NAME}`];
-    if(!token){
-        failResponse(res,Messages.Not_Authorized_No_Token,StatusCode.Unauthorized);
-        return;
-    }
-    try{
-        const decoded = await jwt.verify(token,process.env.JWT_SECRET as string) as JwtPayload;
-        req.userId=decoded.userId;
-        req.userRole=decoded.role;
-        next();
-    }
-    catch(error){
-        console.error('error',error);
-        failResponse(res,Messages.Invalid_Token,StatusCode.Unauthorized);
-    }
+import { Messages } from "../utils/constants";
 
-}
+const authenticate = (req: Request, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
+
+  if (!token) {
+    failResponse(res, Messages.Not_Authorized_No_Token, StatusCode.Unauthorized);
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
+    (req as any).user = decoded;
+    next();
+  } catch (error) {
+    failResponse(res, Messages.Invalid_Token, StatusCode.Unauthorized);
+    return;
+  }
+};
+
+
 export default authenticate;
