@@ -1,17 +1,89 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
+import { User, ChevronDown, Menu as MenuIcon, HelpCircle } from "react-feather";
+import Sidebar from "../../pages/Sidebar";
+import { MainNav } from "../organisms/MainNav";
+import MegaMenuPanel from "../organisms/MegaMenuPanel/MegaMenuPanel";
 import {
-  CheckCircle,
-  Headphones,
-  User,
-  ChevronDown,
-  Menu,
-  ChevronRight,
-} from "react-feather";
+  buyersMegaMenu,
+  ownersMegaMenu,
+  tenantsMegaMenu,
+} from "../../data/MegaMenuDefinition";
 import { useAppSelector } from "../../app/hooks";
 import type { RootState } from "../../app/store";
+import { ExploreModal } from "../organisms/ExploreModal";
 import { useNavigate } from "react-router-dom";
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+interface HeaderProps {
+  onBuyersMenuToggle?: (isOpen: boolean) => void;
+}
+
+const Header: React.FC<HeaderProps> = () => {
+  const navigate = useNavigate();
+
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [buyersMenuOpen, setBuyersMenuOpen] = useState(false);
+  const [tenantsMenuOpen, setTenantsMenuOpen] = useState(false);
+  const [ownersMenuOpen, setOwnersMenuOpen] = useState(false);
+  const [isExploreModalOpen, setExploreModalOpen] = useState(false);
+  const [showGuestContent, setShowGuestContent] = useState(false);
+  const [showPlotContent, setShowPlotContent] = useState(false);
+
+  const user = useAppSelector((state: RootState) => state.auth.user);
+  const loggedIn = !!user;
+
+  const toggleSidebar = () => setSidebarOpen((v) => !v);
+  const closeSidebar = () => setSidebarOpen(false);
+
+  const toggleBuyersMenu = () => {
+    setBuyersMenuOpen((v) => !v);
+    setTenantsMenuOpen(false);
+    setOwnersMenuOpen(false);
+  };
+  const toggleTenantsMenu = () => {
+    setTenantsMenuOpen((v) => !v);
+    setBuyersMenuOpen(false);
+    setOwnersMenuOpen(false);
+  };
+  const toggleOwnersMenu = () => {
+    setOwnersMenuOpen((v) => !v);
+    setTenantsMenuOpen(false);
+    setBuyersMenuOpen(false);
+  };
+
+  // **Dynamic Label**
+  const leftSelectorLabel = loggedIn ? "Property Postings" : "Buy in Hyderabad";
+
+  const handleLeftSelectorClick = () => {
+    if (loggedIn) {
+      // Logic for logged-in users
+    } else {
+      if (leftSelectorLabel === "Buy in Hyderabad") {
+        setExploreModalOpen(true);
+      }
+    }
+  };
+
+  const closeExploreModal = () => {
+    setExploreModalOpen(false);
+  };
+
+  const handleTabSelect = (selectedTab: string) => {
+    setShowGuestContent(false);
+    setShowPlotContent(false);
+    
+    // or update the leftSelectorLabel based on the selected tab
+    // Set appropriate state based on selected tab
+    if (selectedTab === "Buy" || selectedTab === "Rent") {
+      setShowGuestContent(true);
+    } else if (selectedTab === "Plots/Land") {
+      setShowPlotContent(true);
+    }
+    
+    // Add any other logic you need here
+    // For example, navigation or other state updates
+  };
+
   return (
     <>
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -42,7 +114,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <div className="flex items-center space-x-4 relative">
               {/* Post Property Button */}
               <button
-                onClick={() => (window.location.href = "/createProperty")}
+                onClick={() => navigate("/createProperty")}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center space-x-1"
               >
                 <span>Post property</span>
@@ -153,17 +225,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
-      <button onClick={handleLeftSelectorClick}>Check Modal</button>
 
       {/* Show modal only when leftSelectorLabel matches */}
       {leftSelectorLabel === "Buy in Hyderabad" && (
-        <ExploreModal
-          isOpen={isExploreModalOpen}
+        <ExploreModal 
+          isOpen={isExploreModalOpen} 
           onClose={() => setExploreModalOpen(false)}
+          onTabSelect={handleTabSelect}
         />
       )}
-
     </>
   );
 };
+
 export default Header;
