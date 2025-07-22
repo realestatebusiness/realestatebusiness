@@ -4,6 +4,8 @@ import PropertyPostingsSection from '../PropertyPostingsSection/PropertyPostings
 import ResponsesSection from '../ResponsesSection/ResponsesSection';
 import DashboardSidebarSection from '../DashboardSidebarSection/DashboardSidebarSection';
 import type { VillaProperty } from '../../../types/propertyInterface.';
+import { useAppSelector } from '../../../app/hooks';
+import type { RootState } from '../../../app/store';
 
 interface LoggedInHomepageOrganismProps {
   userName: string;
@@ -24,6 +26,8 @@ const LoggedInHomepage: React.FC<LoggedInHomepageOrganismProps> = ({
   onView,
   onViewResponses,
 }) => {
+    const user = useAppSelector((state: RootState) => state.auth.user);
+  
   const activeCount = properties.filter((p) => p.status === 'active').length;
 
   return (
@@ -42,6 +46,7 @@ const LoggedInHomepage: React.FC<LoggedInHomepageOrganismProps> = ({
         <PropertyPostingsSection
           properties={properties}
           loading={loading}
+          userName={userName}
           onMyProps={onMyProps}
           onReactivate={onReactivate}
           onView={onView}

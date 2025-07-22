@@ -1,4 +1,4 @@
-import { PlusIcon, CheckIcon } from "react-feather";
+import { PlusIcon, CheckIcon } from "lucide-react";
 
 interface PropertyOptionProps {
   label: string;

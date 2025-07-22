@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import LocationAutocomplete from './LocationAutocomplete';
 import { getRequest, postRequest } from '../services/endpoints';
-import { toast } from 'react-toastify';
 import type { RootState } from '../app/store';
 import { useAppSelector } from '../app/hooks';
 import { FormModal } from './organisms/FormModal';
 import type { PropertyApiResponse } from '../types/propertyInterface.';
+import toast from 'react-hot-toast';
 
 const PropertyPage = () => {
   const user = useAppSelector((state: RootState) => state.auth.user);
@@ -47,31 +47,43 @@ const PropertyPage = () => {
   const [userPropertiesCount, setUserPropertiesCount] = useState<number | null>(null);
 
 useEffect(() => {
-    const fetchUserProperties = async () => {
-      console.log(" user user : ",user);
-      console.log("user.email : ",user?.email);
+  const fetchUserProperties = async () => {
+    console.log("Fetching properties for user:", user);
 
-      if (!user?.email) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const properties = await getRequest<PropertyApiResponse[]>(`/properties?userEmail=${encodeURIComponent(user.email)}`, {});
-        console.log("properties properties : ",properties);
-        setUserPropertiesCount(properties.length);
-        
-        setShowFormModal(properties.length === 0);
-      } catch (error) {
-        console.error('Error fetching user properties:', error);
-        setUserPropertiesCount(0);
-        setShowFormModal(true); 
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!user?.email) {
+      console.log("No user email found. Skipping property fetch.");
+      setLoading(false);
+      return;
+    }
 
-    fetchUserProperties();
-  }, [user?.email]);
+    try {
+      const properties = await getRequest<PropertyApiResponse[]>(
+        `/properties?userEmail=${encodeURIComponent(user.email)}`, {}
+      );
+      
+      console.log("Fetched properties:", properties);
+
+      const propertyCount = Array.isArray(properties) ? properties.length : 0;
+      setUserPropertiesCount(propertyCount);
+
+      if (propertyCount === 0) {
+        console.log("No properties found. Opening modal.");
+        setShowFormModal(true);
+      } else {
+        console.log("Properties found. Modal will stay closed.");
+        setShowFormModal(false);
+      }
+    } catch (error) {
+      console.error("Error fetching user properties:", error);
+      setUserPropertiesCount(0);
+      setShowFormModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchUserProperties();
+}, [user?.email]);
 
   const residentialOptions = [
     { value: 'flat_apartment', label: 'Flat/Apartment' },
@@ -241,7 +253,7 @@ console.log("user.name : ",user?.name);
       const response = await postRequest('/createProperty', propertyDetails);
       toast.success("Property Successfully Created!");
     } catch (error) {
-      toast.error("Failed to submit property. Please try again.");
+      toast.error("Failed to S property. Please try again.");
     }
   };
 

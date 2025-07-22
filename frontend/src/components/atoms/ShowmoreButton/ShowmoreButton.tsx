@@ -1,4 +1,4 @@
-import { PlusIcon } from "react-feather";
+import { PlusIcon } from "lucide-react";
 
 interface ShowMoreButtonProps {
   count: number;

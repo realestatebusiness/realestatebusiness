@@ -1,7 +1,10 @@
+import { useAppSelector } from "../../../app/hooks";
+import type { RootState } from "../../../app/store";
 import type { VillaProperty } from "../../../types/propertyInterface.";
 
 interface PropertyPostingsSectionProps {
   properties: VillaProperty[];
+  userName: string;
   loading?: boolean;
   onMyProps?: () => void;
   onReactivate?: (id: string) => void;
@@ -10,16 +13,24 @@ interface PropertyPostingsSectionProps {
 
 const PropertyPostingsSection: React.FC<PropertyPostingsSectionProps> = ({
   properties,
+  userName,
   loading,
   onMyProps,
   onReactivate,
   onView,
 }) => {
-  if (loading) return <div>Loading your properties…</div>;
+      const user = useAppSelector((state: RootState) => state.auth.user);
+  const shouldShowProperties = !!user && properties.length > 0;
+  
+  // If user is not logged in, don't render anything
+  if (!user) {
+    return null;
+  }
 
   if (properties.length === 0) {
     return <div>You haven’t posted any properties yet.</div>;
   }
+
   const latestProperty = properties[properties.length - 1];
 
   return (

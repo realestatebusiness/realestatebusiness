@@ -20,7 +20,7 @@ import { getRequest } from '../../services/endpoints';
 import type { VillaProperty } from '../../types/VillaProperty';
 
 type UIStatus = 'active' | 'inactive' | 'deleted' | 'draft';
-interface UserPropertyUI {
+interface UserProperty {
   _id: string;
   displayId?: string;
   title: string;
@@ -29,7 +29,7 @@ interface UserPropertyUI {
   imageUrl?: string;
 }
 
-const mapVillaToUI = (v: VillaProperty): UserPropertyUI => {
+const mapVillaToUI = (v: VillaProperty): UserProperty => {
   const addr =
     (v as any).propertyAddress ??
     [
@@ -62,34 +62,52 @@ const HomepageTemplate = () => {
   const isGuest = !user;
 
   const [propsLoading, setPropsLoading] = useState(false);
-  const [userProps, setUserProps] = useState<UserPropertyUI[]>([]);
+  const [userProps, setUserProps] = useState<UserProperty[]>([]);
+  const [apiUserName, setApiUserName] = useState<string>(''); // Store API username
 
 useEffect(() => {
-  if (!userName) return;
+    if (!userName || isGuest) return;
 
-  const fetchProps = async () => {
-    try {
-      setPropsLoading(true);
+    const fetchProps = async () => {
+      try {
+        setPropsLoading(true);
 
-      const res = await getRequest<{
-        data: { data: VillaProperty[] };
-      }>(`/properties?userName=${userName}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        // Option 1: If your API returns properties for current user, remove userName query
+        const res = await getRequest<{
+          data: { 
+            data: VillaProperty[];
+            userName?: string; // API should return the username of property owner
+          };
+        }>(`/properties`, { // Remove userName query, get current user's properties
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const villas = res?.data?.data ?? [];
-      console.log("Fetched villas:", villas);
+        // Option 2: If you want to keep userName query, use this:
+        // const res = await getRequest<{
+        //   data: { 
+        //     data: VillaProperty[];
+        //     userName?: string;
+        //   };
+        // }>(`/properties?userName=${userName}`, {
+        //   headers: { Authorization: `Bearer ${token}` },
+        // });
 
-      setUserProps(villas.map(mapVillaToUI));
-    } catch (err) {
-      setUserProps([]);
-    } finally {
-      setPropsLoading(false);
-    }
-  };
+        const villas = res?.data?.data ?? [];
+        const responseUserName = res?.data?.userName || '';
 
-  fetchProps();
-}, [userName, token]);
+        setApiUserName(responseUserName);
+        setUserProps(villas.map(mapVillaToUI));
+      } catch (err) {
+        setUserProps([]);
+        setApiUserName('');
+      } finally {
+        setPropsLoading(false);
+      }
+    };
+
+    fetchProps();
+  }, [userName, token, isGuest]);
+
   const [selectedTab, setSelectedTab] = useState('Buy');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -172,6 +190,8 @@ useEffect(() => {
   const handleViewResponses = () => {
     // e.g., navigate('/responses');
   };
+
+  const shouldShowProperties = !isGuest && userProps.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -274,7 +294,7 @@ useEffect(() => {
           </>
         )}
 
-        {!isGuest && (
+            {!isGuest && shouldShowProperties && (
           <LoggedInHomepage
             userName={userName}
             properties={userProps}

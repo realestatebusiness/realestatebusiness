@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon } from "react-feather";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import PropertyOption from "../../atoms/PropertyOptions/PropertyOptions";
 import ShowMoreButton from "../../atoms/ShowmoreButton/ShowmoreButton";
 import { useState } from "react";
