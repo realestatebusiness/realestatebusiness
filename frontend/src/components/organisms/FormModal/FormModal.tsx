@@ -3,14 +3,18 @@ import { Button } from "../../atoms/Button";
 import { RadioGroup } from "../../molecules/RadioGroup";
 import { InputGroup } from "../../molecules/InputGroup";
 
-const FormModal = () => {
+const FormModal = ({ onClose, onSuccess }) => {
     const [city, setCity] = useState('');
     const [userType, setUserType] = useState('Owner');
     const [isOpen, setIsOpen] = useState(true);
 
     const handleSubmit = () => {
         console.log('City:', city, 'User Type:', userType);
+        if (onSuccess) {
+            onSuccess({ adminCity: city, adminRole: userType });
+        }
         setIsOpen(false);
+        if (onClose) onClose();
     };
 
     useEffect(() => {

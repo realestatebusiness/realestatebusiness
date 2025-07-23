@@ -1,6 +1,14 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+enum AdminRole {
+  Owner = 'Owner',
+  Broker = 'Broker',
+  Builder = 'Builder'
+}
+
 interface VillaProperty extends Document {
+    adminrole:AdminRole;
+    adminCity:string;
     userName: string;
     userEmail: string;
     propertyId: string;
@@ -48,16 +56,18 @@ interface VillaProperty extends Document {
             currency?: string;
         };
     };
-    media: {
-        photos: {
-            url: string;
-            caption?: string;
-        }[];
-        video?: {
-            url?: string;
-            caption?: string;
-        };
-    };
+media: {
+  photos: [{
+    url: { type: String, required: true },
+    fileId: { type: String },
+    caption: { type: String }
+  }],
+  video: {
+    url: { type: String },
+    fileId: { type: String },
+    caption: { type: String }
+  }
+};
     amenities: {
         otherRooms?: ('pooja_room' | 'study_room' | 'servant_room' | 'store_room')[];
         furnishing?: 'furnished' | 'semi_furnished' | 'unfurnished';
@@ -78,6 +88,12 @@ interface VillaProperty extends Document {
 const villaPropertySchema = new mongoose.Schema<VillaProperty>({
     userName: { type: String, required: true },
     userEmail: { type: String, required: true },
+adminrole: {
+    type: String,
+    enum: Object.values(AdminRole),
+    required: false
+  },
+    adminCity:{type:String,required:false},
     basicDetails: {
         lookingFor: {
             type: String,

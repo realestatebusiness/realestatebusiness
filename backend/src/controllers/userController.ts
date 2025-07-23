@@ -32,7 +32,6 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
             password: passwordHash,
             phoneNumber,
             role: [role],
-            status: Status.Active,
             isActive: true,
             version: 1,
             createdBy: req.userId,

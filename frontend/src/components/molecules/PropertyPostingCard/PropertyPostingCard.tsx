@@ -19,9 +19,7 @@ const PropertyPostingCard: React.FC<PropertyPostingCardProps> = ({ prop, onReact
       <PropertyMediaThumb imageUrl={prop.imageUrl} alt={prop.title} />
 
       <div className="flex-1">
-        <div className="text-xs text-gray-500 mb-1">
-          Property ID - {prop.displayId ?? prop._id}
-        </div>
+       
         <h3 className="text-lg font-semibold text-gray-900">{prop.title}</h3>
         <p className="text-sm text-gray-600">{prop.addressLine}</p>
 
