@@ -6,7 +6,7 @@ export interface VillaProperty extends Document {
   userName: string;
   userEmail: string;
   propertyId?: string;
-  status: "active" | "inactive" | "deleted" | "draft";
+  // status: "active" | "inactive" | "deleted" | "draft";
   requestDate?: Date;
 
   basicDetails: {

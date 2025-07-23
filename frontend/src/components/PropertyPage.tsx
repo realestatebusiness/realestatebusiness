@@ -4,12 +4,10 @@ import { getRequest, postRequest } from '../services/endpoints';
 import type { RootState } from '../app/store';
 import { useAppSelector } from '../app/hooks';
 import { FormModal } from './organisms/FormModal';
-import type { PropertyApiResponse } from '../types/propertyInterface.';
 import toast from 'react-hot-toast';
 
 const PropertyPage = () => {
   const user = useAppSelector((state: RootState) => state.auth.user);
-  console.log("console user : ",user);
   const [currentStep, setCurrentStep] = useState(1);
   const [areaUnit, setAreaUnit] = useState('sq_feet');
   const [propertyTitle, setPropertyTitle] = useState('');
@@ -45,45 +43,34 @@ const PropertyPage = () => {
   const [showFormModal, setShowFormModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userPropertiesCount, setUserPropertiesCount] = useState<number | null>(null);
+  const [adminCity, setAdminCity] = useState('');
+  const [adminRole, setAdminRole] = useState('');
 
 useEffect(() => {
   const fetchUserProperties = async () => {
-    console.log("Fetching properties for user:", user);
-
     if (!user?.email) {
-      console.log("No user email found. Skipping property fetch.");
       setLoading(false);
       return;
     }
 
     try {
-      const properties = await getRequest<PropertyApiResponse[]>(
-        `/properties?userEmail=${encodeURIComponent(user.email)}`, {}
+      const properties = await getRequest(`/properties`, {});
+      const allProperties = properties?.data?.data || [];
+      const userProperties = allProperties.filter(
+        (prop) => prop.userName === user.name
       );
-      
-      console.log("Fetched properties:", properties);
-
-      const propertyCount = Array.isArray(properties) ? properties.length : 0;
+      const propertyCount = userProperties.length;
       setUserPropertiesCount(propertyCount);
-
-      if (propertyCount === 0) {
-        console.log("No properties found. Opening modal.");
-        setShowFormModal(true);
-      } else {
-        console.log("Properties found. Modal will stay closed.");
-        setShowFormModal(false);
-      }
+      setShowFormModal(propertyCount === 0);
     } catch (error) {
-      console.error("Error fetching user properties:", error);
       setUserPropertiesCount(0);
       setShowFormModal(true);
     } finally {
       setLoading(false);
     }
   };
-
   fetchUserProperties();
-}, [user?.email]);
+}, [user?.name]);
 
   const residentialOptions = [
     { value: 'flat_apartment', label: 'Flat/Apartment' },
@@ -181,10 +168,11 @@ useEffect(() => {
   };
 
   const handleSubmit = async (event) => {
-console.log("user.name : ",user?.name);
     const propertyDetails = {
-     userName:user?.name, 
+      userName:user?.name, 
       userEmail: user?.email,
+      adminCity,
+      adminRole,
       propertyTitle,
       basicDetails: {
         lookingFor: lookingTo,
@@ -249,7 +237,6 @@ console.log("user.name : ",user?.name);
     };
 
     try {
-      console.log("propertyDetails propertyDetails : ",propertyDetails);
       const response = await postRequest('/createProperty', propertyDetails);
       toast.success("Property Successfully Created!");
     } catch (error) {
@@ -1130,15 +1117,17 @@ console.log("user.name : ",user?.name);
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         <div className="fixed left-0 top-95px w-80 bg-white shadow-sm p-6 z-20">
-      {showFormModal && (
-        <FormModal 
-          onClose={() => setShowFormModal(false)}
-          onSuccess={() => {
-            setShowFormModal(false);
-            setUserPropertiesCount(prev => (prev || 0) + 1);
-          }}
-        />
-      )}
+      {!loading && showFormModal && (
+  <FormModal
+    onClose={() => setShowFormModal(false)}
+    onSuccess={({ adminCity, adminRole }) => {
+      setAdminCity(adminCity);
+      setAdminRole(adminRole);
+      setShowFormModal(false);
+      setUserPropertiesCount(prev => (prev || 0) + 1);
+    }}
+  />
+)}
                 <StepIndicator
             stepNumber="1"
             title="Basic Details"

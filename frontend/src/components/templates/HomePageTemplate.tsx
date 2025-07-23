@@ -7,7 +7,6 @@ import SearchBar from '../organisms/SearchBar/SearchBar';
 import { PropertyTypeDropDown } from '../organisms/PropertyTypeDropDown';
 import { FilterBar } from '../organisms/FilterBar';
 import { DemandSection } from '../organisms/DemandSection';
-import { PropertyTypeSection } from '../organisms/PropertyTypeSection';
 import { PlotCollectionSection } from '../organisms/PlotCollectionSection';
 import { AdvertiserSection } from '../organisms/AdvertiserSection';
 import { SellWithUsSection } from '../organisms/SellWithUsSection';
@@ -17,43 +16,8 @@ import { useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
 import { LoggedInHomepage } from '../organisms/LoggedInHomepage';
 import { getRequest } from '../../services/endpoints';
-import type { VillaProperty } from '../../types/VillaProperty';
-
-type UIStatus = 'active' | 'inactive' | 'deleted' | 'draft';
-interface UserProperty {
-  _id: string;
-  displayId?: string;
-  title: string;
-  addressLine: string;
-  status: UIStatus;
-  imageUrl?: string;
-}
-
-const mapVillaToUI = (v: VillaProperty): UserProperty => {
-  const addr =
-    (v as any).propertyAddress ??
-    [
-      v.locationDetails?.apartmentSociety,
-      v.locationDetails?.subLocality,
-      v.locationDetails?.locality,
-      v.locationDetails?.city,
-    ]
-      .filter(Boolean)
-      .join(', ');
-
-  const status: UIStatus = (v as any).status ?? 'active';
-
-  const imageUrl = v.media?.photos?.[0]?.url;
-
-  return {
-    _id: String(v._id),
-    displayId: v.propertyId,
-    title: v.basicDetails?.propertyTitle ?? 'Untitled Property',
-    addressLine: addr,
-    status,
-    imageUrl,
-  };
-};
+import type { VillaProperty } from '../../types/propertyInterface.';
+import { PropertyPostingsSection } from '../organisms/PropertyPostingsSection';
 
 const HomepageTemplate = () => {
   const user = useAppSelector((state: RootState) => state.auth.user);
@@ -62,51 +26,57 @@ const HomepageTemplate = () => {
   const isGuest = !user;
 
   const [propsLoading, setPropsLoading] = useState(false);
-  const [userProps, setUserProps] = useState<UserProperty[]>([]);
-  const [apiUserName, setApiUserName] = useState<string>(''); // Store API username
+  const [userProps, setUserProps] = useState<VillaProperty[]>([]);
+  const [apiUserName, setApiUserName] = useState<string>('');
 
 useEffect(() => {
-    if (!userName || isGuest) return;
+  const myUser = userName?.trim();
+  if (!myUser || isGuest || !token) return;
 
-    const fetchProps = async () => {
-      try {
-        setPropsLoading(true);
+  let cancelled = false;
 
-        // Option 1: If your API returns properties for current user, remove userName query
-        const res = await getRequest<{
-          data: { 
-            data: VillaProperty[];
-            userName?: string; // API should return the username of property owner
-          };
-        }>(`/properties`, { // Remove userName query, get current user's properties
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  const getPropUserName = (p: any): string =>
+    (p?.userName ??
+     p?.owner?.userName ??
+     p?.createdBy ??
+     p?.user?.userName ??
+     ''
+    ).trim();
 
-        // Option 2: If you want to keep userName query, use this:
-        // const res = await getRequest<{
-        //   data: { 
-        //     data: VillaProperty[];
-        //     userName?: string;
-        //   };
-        // }>(`/properties?userName=${userName}`, {
-        //   headers: { Authorization: `Bearer ${token}` },
-        // });
+  const fetchProps = async () => {
+    try {
+      setPropsLoading(true);
+      const res = await getRequest(`/properties`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const villas = res?.data?.data ?? [];
-        const responseUserName = res?.data?.userName || '';
+      const raw = res.data;
+      const villas: VillaProperty[] = Array.isArray(raw)
+        ? raw
+        : (raw?.data ?? []);
 
-        setApiUserName(responseUserName);
-        setUserProps(villas.map(mapVillaToUI));
-      } catch (err) {
-        setUserProps([]);
-        setApiUserName('');
-      } finally {
-        setPropsLoading(false);
-      }
-    };
+      const myVillas = villas.filter(
+        (v) => getPropUserName(v).toLowerCase() === myUser.toLowerCase()
+      );
 
-    fetchProps();
-  }, [userName, token, isGuest]);
+      const responseUserName = myVillas.length
+        ? getPropUserName(myVillas[0])
+        : '';
+
+      if (cancelled) return;
+      setUserProps(myVillas);
+      setApiUserName(responseUserName);
+    } catch (err) {
+      
+    } finally {
+      if (!cancelled) setPropsLoading(false);
+    }
+  };
+
+  fetchProps();
+  return () => { cancelled = true; };
+}, [userName, token, isGuest]);
+
 
   const [selectedTab, setSelectedTab] = useState('Buy');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -184,11 +154,9 @@ useEffect(() => {
   };
 
   const handleViewProp = (id: string) => {
-    // e.g., navigate(`/property/${id}`);
   };
 
   const handleViewResponses = () => {
-    // e.g., navigate('/responses');
   };
 
   const shouldShowProperties = !isGuest && userProps.length > 0;
@@ -266,7 +234,7 @@ useEffect(() => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showGuestContent && (
           <>
-            <PropertyTypeSection
+            <PropertyPostingsSection
               isGuest={isGuest}
               userName={userName}
               location="Hyderabad"
@@ -294,7 +262,7 @@ useEffect(() => {
           </>
         )}
 
-            {!isGuest && shouldShowProperties && (
+            {!isGuest && (
           <LoggedInHomepage
             userName={userName}
             properties={userProps}

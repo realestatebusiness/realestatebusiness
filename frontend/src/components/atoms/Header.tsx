@@ -12,6 +12,7 @@ import { useAppSelector } from "../../app/hooks";
 import type { RootState } from "../../app/store";
 import { ExploreModal } from "../organisms/ExploreModal";
 import { useNavigate } from "react-router-dom";
+import PropertyModal from "../organisms/PropertyModal/PropertyModal";
 
 interface HeaderProps {
   onBuyersMenuToggle?: (isOpen: boolean) => void;
@@ -28,6 +29,7 @@ const Header: React.FC<HeaderProps> = () => {
   const [isExploreModalOpen, setExploreModalOpen] = useState(false);
   const [showGuestContent, setShowGuestContent] = useState(false);
   const [showPlotContent, setShowPlotContent] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const user = useAppSelector((state: RootState) => state.auth.user);
   const loggedIn = !!user;
@@ -51,12 +53,13 @@ const Header: React.FC<HeaderProps> = () => {
     setBuyersMenuOpen(false);
   };
 
-  // **Dynamic Label**
   const leftSelectorLabel = loggedIn ? "Property Postings" : "Buy in Hyderabad";
 
   const handleLeftSelectorClick = () => {
     if (loggedIn) {
-      // Logic for logged-in users
+      if (leftSelectorLabel === "Property Postings") {
+        setIsModalOpen(true);
+      }
     } else {
       if (leftSelectorLabel === "Buy in Hyderabad") {
         setExploreModalOpen(true);
@@ -68,20 +71,10 @@ const Header: React.FC<HeaderProps> = () => {
     setExploreModalOpen(false);
   };
 
-  const handleTabSelect = (selectedTab: string) => {
-    setShowGuestContent(false);
-    setShowPlotContent(false);
-    
-    // or update the leftSelectorLabel based on the selected tab
-    // Set appropriate state based on selected tab
-    if (selectedTab === "Buy" || selectedTab === "Rent") {
-      setShowGuestContent(true);
-    } else if (selectedTab === "Plots/Land") {
-      setShowPlotContent(true);
-    }
-    
-    // Add any other logic you need here
-    // For example, navigation or other state updates
+  const handleTabSelect = (tab: string) => {
+    setSelectedTab(tab); 
+    setShowGuestContent(tab === "Buy" || tab === "Rent / Lease" || tab === "Rent");
+    setShowPlotContent(tab === "Plots/Land");
   };
 
   return (
@@ -89,11 +82,9 @@ const Header: React.FC<HeaderProps> = () => {
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-screen-xl mx-auto px-4 py-3 relative">
           <div className="flex items-center justify-between">
-            {/* Left Section */}
             <div className="flex items-center space-x-8">
               <div className="text-2xl font-bold text-blue-600">RealEstate</div>
 
-              {/* Left Selector */}
               <button
                 onClick={handleLeftSelectorClick}
                 className="flex items-center space-x-1 text-sm text-gray-700 font-medium"
@@ -103,16 +94,13 @@ const Header: React.FC<HeaderProps> = () => {
               </button>
             </div>
 
-            {/* Center Navigation */}
             <MainNav
               onBuyersToggle={toggleBuyersMenu}
               onTenantsToggle={toggleTenantsMenu}
               onOwnersToggle={toggleOwnersMenu}
             />
 
-            {/* Right Section */}
             <div className="flex items-center space-x-4 relative">
-              {/* Post Property Button */}
               <button
                 onClick={() => navigate("/createProperty")}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center space-x-1"
@@ -123,10 +111,8 @@ const Header: React.FC<HeaderProps> = () => {
                 </span>
               </button>
 
-              {/* Help Icon */}
               <HelpCircle className="w-5 h-5 text-gray-600 hover:text-blue-600 cursor-pointer" />
 
-              {/* Profile Dropdown */}
               <div className="flex items-center space-x-2 relative">
                 {loggedIn && user?.name ? (
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold text-sm">
@@ -196,7 +182,6 @@ const Header: React.FC<HeaderProps> = () => {
                 )}
               </div>
 
-              {/* Sidebar Menu */}
               <MenuIcon
                 className="w-5 h-5 text-gray-600 hover:text-blue-600 cursor-pointer"
                 onClick={toggleSidebar}
@@ -204,7 +189,6 @@ const Header: React.FC<HeaderProps> = () => {
             </div>
           </div>
 
-          {/* Mega Menus */}
           <MegaMenuPanel
             isOpen={buyersMenuOpen}
             onClose={() => setBuyersMenuOpen(false)}
@@ -223,10 +207,8 @@ const Header: React.FC<HeaderProps> = () => {
         </div>
       </header>
 
-      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
-      {/* Show modal only when leftSelectorLabel matches */}
       {leftSelectorLabel === "Buy in Hyderabad" && (
         <ExploreModal 
           isOpen={isExploreModalOpen} 
@@ -234,6 +216,14 @@ const Header: React.FC<HeaderProps> = () => {
           onTabSelect={handleTabSelect}
         />
       )}
+      {leftSelectorLabel === "Property Postings" && (
+        <PropertyModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onTabSelect={handleTabSelect}
+        />
+      )}
+
     </>
   );
 };
