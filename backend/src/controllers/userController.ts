@@ -6,11 +6,12 @@ import { StatusCode } from "../utils/statusCode";
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import generateToken from "../utils/jwtUtils";
+import PropertyLocation from "../schema/PropertyLocation";
 
 
 const registerUser = async (req: Request, res: Response): Promise<any> => {
-    const { name, email, password, role, phoneNumber } = req.body;
-    console.log('reqbody',req.body)
+    const { name, email, password, role, phoneNumber,} = req.body;
+    console.log('reqbody.......',req.body)
 
     if (!name || !email || !password || !phoneNumber) {
         failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
@@ -35,6 +36,7 @@ const registerUser = async (req: Request, res: Response): Promise<any> => {
             status: Status.Active,
             isActive: true,
             version: 1,
+        
             createdBy: req.userId,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -107,10 +109,12 @@ const getProfile = async (req: Request, res: Response): Promise<any> => {
       return failResponse(res, Messages.Not_Authorized_No_Token, StatusCode.Unauthorized);
     }
 
-    const user = await UserModel.findById(userId).select('-password');
+    const user = await UserModel.findById(userId).select('-password').populate('location'); ;
+
     if (!user) {
       return failResponse(res, Messages.User_Not_Found, StatusCode.Not_Found);
     }
+    console.log(user.userlocation);
 
     return successResponse(res, user, Messages.Fetch_Success, StatusCode.OK);
   } catch (err) {
@@ -123,14 +127,16 @@ const getProfile = async (req: Request, res: Response): Promise<any> => {
 
 const updateProfile = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { email, ...rest } = req.body;
+    const { userId, ...rest } = req.body;
+    console.log("getting.....",req.body)
+    
 
-    if (!email) {
+    if (!userId) {
       return failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
     }
 
     const updatedUser = await UserModel.findOneAndUpdate(
-      { email },
+      { _id:userId },
       { $set: { ...rest, updatedBy: req.userId, updatedAt: new Date() } },
       { new: true }
     );
@@ -147,5 +153,40 @@ const updateProfile = async (req: Request, res: Response): Promise<any> => {
 };
 
 
+const locationdata = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { city, state, latitude, longitude, userId } = req.body; // Ensure userId is passed or extracted from token
 
-export { registerUser, login , getProfile, updateProfile }
+    if (!city || !state || !latitude || !longitude || !userId) {
+      failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
+      return;
+    }
+
+    // Step 1: Create PropertyLocation
+    const locationDoc = await PropertyLocation.create({
+      title: `${city}, ${state}`,
+      price: 0, // optional defaults if not provided
+      description: "",
+      address: "",
+      city,
+      state,
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      },
+    });
+
+    // Step 2: Update user schema
+    await UserModel.findByIdAndUpdate(userId, {
+      $set: { location: locationDoc._id }, // OR $push to userlocation array
+    });
+
+    successResponse(res, locationDoc, Messages.Location_Fetching_Success, StatusCode.OK);
+  } catch (error) {
+    console.error(error);
+    failResponse(res, Messages.Internal_Server_Error, StatusCode.Internal_Server_Error);
+  }
+};
+
+
+export { registerUser, login , getProfile, updateProfile ,locationdata}

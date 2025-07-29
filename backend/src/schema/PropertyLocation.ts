@@ -1,10 +1,26 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const PropertySchema = new mongoose.Schema({
-  title: String,
-  price: Number,
-  description: String,
-  address: String,
+export interface PropertyLocation extends Document {
+  title: string;
+  price: number;
+  description: string;
+  address: string;
+  city: string;
+  state: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+}
+
+
+const PropertyLocationSchema = new Schema<PropertyLocation>({
+  title: { type: String },
+  price: { type: Number },
+  description: { type: String },
+  address: { type: String },
+  city: { type: String },
+  state: { type: String },
   location: {
     type: {
       type: String,
@@ -13,14 +29,13 @@ const PropertySchema = new mongoose.Schema({
       default: "Point",
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
+      type: [Number],
       required: true,
     },
   },
 });
 
-// ✅ Explicitly create geospatial index
-PropertySchema.index({ location: "2dsphere" });
+// Geospatial index
+PropertyLocationSchema.index({ location: "2dsphere" });
 
-export default mongoose.model("Property", PropertySchema);
-
+export default mongoose.model<PropertyLocation>("Property", PropertyLocationSchema);

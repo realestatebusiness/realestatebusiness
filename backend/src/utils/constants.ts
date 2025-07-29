@@ -73,6 +73,7 @@ export const Messages = {
     Fetching_Location_Failure:'Location fetched failed',
     Fetch_Success: "Profile fetched successfully",
     Update_Success: "Profile updated successfully",
-    Server_Error: "Something went wrong"
+    Server_Error: "Something went wrong",
+    Location_Fetching_Success:"location fetched succesfully"
 
 }

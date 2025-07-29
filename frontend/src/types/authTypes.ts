@@ -1,4 +1,5 @@
 export interface User {
+    _id: string;
   name: string;
   email: string;
   role: string[];
@@ -26,30 +27,42 @@ export interface LoginFormData {
 }
 
 export interface UserProfile {
-  role: string;
+  username?: string;
+  _id: string;
   name: string;
   email: string;
-  username: string;
-  phone: string;
-  city: string;
-  address: string;
-  landline: string;
-  state: string;
-  promoMails: boolean;
-  token: string;
-  userId: string;
-  user: {
-    isActive: boolean;
-    role: string[];
-    name: string;
-    email: string;
-    phoneNumber: string;
-    address?: string;
-    city?: string;
-    landline?: string;
-    profilePhoto?: string;
-    companyLogo?: string;
-  };
+  password: string;
+  phoneNumber: string;
+  role?: string[]; 
+  favoriteProducts: string[]; 
+  userlocation: string[]; 
+  status: string; 
+  version: number;
+  createdBy?: string; 
+  updatedBy?: string; 
+  isActive: boolean;
+  landline?: string;
+  address?: string;
+  profilePhoto?: string;
+  city?: string;
+  state?: string;
+  companyLogo?: string;
+  location?: string | { // Add this union type
+    _id: string;
+    title: string;
+    city: string;
+    state: string;
+    location: {
+      type: string;
+      coordinates: number[];
+    };
+    price: number;
+    description: string;
+    address: string;
+    __v: number;
+  }; 
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UserProfileResponse {
@@ -59,12 +72,36 @@ export interface UserProfileResponse {
     _id: string;
     name: string;
     email: string;
+    password: string;
     phoneNumber: string;
-    role: (string | null)[];
-    favoriteProducts: any[]; // Replace `any` with the actual type if known
+    role: string[];
+    favoriteProducts: string[];
+    userlocation: string[];
     status: string;
     version: number;
+    createdBy?: string;
+    updatedBy?: string;
     isActive: boolean;
+    landline?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    profilePhoto?: string;
+    companyLogo?: string;
+    location?: string | {
+      location: {
+        type: string;
+        coordinates: number[];
+      };
+      _id: string;
+      title: string;
+      price: number;
+      description: string;
+      address: string;
+      city: string;
+      state: string;
+      __v: number;
+    };
     createdAt: string;
     updatedAt: string;
     __v: number;

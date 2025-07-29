@@ -20,15 +20,23 @@ interface User extends Document {
     password: string;
     phoneNumber: string;
     role: UserRole[];
+    userlocation:mongoose.Types.ObjectId[];
     favoriteProducts: mongoose.Types.ObjectId[];
     status: Status;
     version: number;
     createdAt: Date;
     updatedAt: Date;
+    landline:string;
+    address:string;
+    profilePhoto:string;
+    companyLogo:string;
+    location:mongoose.Schema.Types.ObjectId;
+    city:string;
+    state:string;
     createdBy?: mongoose.Schema.Types.ObjectId;
     updatedBy?: mongoose.Schema.Types.ObjectId;
     isActive: boolean;
-    
+  
 
 }
 
@@ -39,12 +47,19 @@ const userSchema: Schema = new Schema(
     password: { type: String, required: true },
     phoneNumber: { type: String, required: true },
     role: { type: [String], enum: Object.values(UserRole), requred: true },
+
     favoriteProducts: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Property",
       },
     ],
+     userlocation :[
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Property",
+      },
+     ],
     status: {
       type: String,
       enum: Object.values(Status),
@@ -56,12 +71,14 @@ const userSchema: Schema = new Schema(
     isActive: { type: Boolean, default: true },
 
     // fields for profile update
-    city: { type: String },
+
     landline: { type: String },
     address: { type: String },
     profilePhoto: { type: String },
 
     companyLogo: { type: String },
+    city:{type:String},
+    state:{type:String},
     location: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Property",
