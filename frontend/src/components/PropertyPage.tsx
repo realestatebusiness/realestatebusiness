@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import LocationAutocomplete from './LocationAutocomplete';
-import { postRequest } from '../services/endpoints';
-import { toast } from 'react-toastify';
+import { getRequest, postRequest } from '../services/endpoints';
+import type { RootState } from '../app/store';
+import { useAppSelector } from '../app/hooks';
+import { FormModal } from './organisms/FormModal';
+import toast from 'react-hot-toast';
 
 const PropertyPage = () => {
+  const user = useAppSelector((state: RootState) => state.auth.user);
   const [currentStep, setCurrentStep] = useState(1);
   const [areaUnit, setAreaUnit] = useState('sq_feet');
   const [propertyTitle, setPropertyTitle] = useState('');
@@ -36,6 +40,37 @@ const PropertyPage = () => {
   const [ageOfProperty, setAgeOfProperty] = useState('');
   const [ownership, setOwnership] = useState('');
   const [areaValue, setAreaValue] = useState('');
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userPropertiesCount, setUserPropertiesCount] = useState<number | null>(null);
+  const [adminCity, setAdminCity] = useState('');
+  const [adminRole, setAdminRole] = useState('');
+
+useEffect(() => {
+  const fetchUserProperties = async () => {
+    if (!user?.email) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const properties = await getRequest(`/properties`, {});
+      const allProperties = properties?.data?.data || [];
+      const userProperties = allProperties.filter(
+        (prop) => prop.userName === user.name
+      );
+      const propertyCount = userProperties.length;
+      setUserPropertiesCount(propertyCount);
+      setShowFormModal(propertyCount === 0);
+    } catch (error) {
+      setUserPropertiesCount(0);
+      setShowFormModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchUserProperties();
+}, [user?.name]);
 
   const residentialOptions = [
     { value: 'flat_apartment', label: 'Flat/Apartment' },
@@ -133,12 +168,11 @@ const PropertyPage = () => {
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-
     const propertyDetails = {
-      userId: "user123",
-      userName: "Sulaxana",
-      userEmail: "sulaxana@example.com",
+      userName:user?.name, 
+      userEmail: user?.email,
+      adminCity,
+      adminRole,
       propertyTitle,
       basicDetails: {
         lookingFor: lookingTo,
@@ -206,7 +240,7 @@ const PropertyPage = () => {
       const response = await postRequest('/createProperty', propertyDetails);
       toast.success("Property Successfully Created!");
     } catch (error) {
-      toast.error("Failed to submit property. Please try again.");
+      toast.error("Failed to S property. Please try again.");
     }
   };
 
@@ -1083,7 +1117,18 @@ const PropertyPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         <div className="fixed left-0 top-95px w-80 bg-white shadow-sm p-6 z-20">
-          <StepIndicator
+      {!loading && showFormModal && (
+  <FormModal
+    onClose={() => setShowFormModal(false)}
+    onSuccess={({ adminCity, adminRole }) => {
+      setAdminCity(adminCity);
+      setAdminRole(adminRole);
+      setShowFormModal(false);
+      setUserPropertiesCount(prev => (prev || 0) + 1);
+    }}
+  />
+)}
+                <StepIndicator
             stepNumber="1"
             title="Basic Details"
             subtitle={getStepSubtitle(1)}

@@ -1,6 +1,6 @@
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import type { RegistrationFormData } from "../../../types/authTypes";
-import InputField from "../../atoms/InputField";
+import { InputField } from "../../atoms/InputField";
 
 interface RegisterFormFieldsProps {
     register: UseFormRegister<RegistrationFormData>;

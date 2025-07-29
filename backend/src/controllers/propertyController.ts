@@ -21,63 +21,77 @@ const uploadMediaFile = async (file: string, index: number) => {
   return {
     url: result.url,
     fileId: result.fileId,
-    type: isImage ? "image" : "video"
+    type: isImage ? "image" : "video",
   };
 };
 
 export const createProperty = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
-      userId,
       userName,
       userEmail,
+      adminRole,
+      adminCity,
       basicDetails,
       locationDetails,
       propertyProfile,
       plotDetails,
       media,
-      amenities
+      amenities,
     } = req.body;
-console.log('req.body',req.body)
-    if (!media || !Array.isArray(media)) {
-      failResponse(res,Messages.Invalid_Images_Format,StatusCode.Bad_Request)
+
+    if (!Array.isArray(media) || media.length === 0) {
+      failResponse(res, Messages.Invalid_Images_Format, StatusCode.Bad_Request);
       return;
     }
 
-    const uploadedMedia = await Promise.all(media.map(uploadMediaFile));
+    const uploadedMedia = await Promise.all(
+      media.map((file: string, i: number) => uploadMediaFile(file, i))
+    );
+
+    const photos = uploadedMedia
+      .filter((m) => m.type === "image")
+      .slice(0, 5)
+      .map((m) => ({ url: m.url }));
+
+    const videoItem = uploadedMedia.find((m) => m.type === "video");
+    const video = videoItem ? { url: videoItem.url } : undefined;
 
     const newProperty = new VillaPropertyModel({
-      userId,
       userName,
       userEmail,
+      adminrole: adminRole,
+      adminCity,
       basicDetails,
       locationDetails,
       propertyProfile,
       plotDetails,
-      media: uploadedMedia,
-      amenities
+      media: { photos, ...(video ? { video } : {}) },
+      amenities,
     });
 
     const savedProperty = await newProperty.save();
-
-    successResponse(res,{data:savedProperty},Messages.Property_Creation_Success,StatusCode.Created)
-
+    successResponse(
+      res,
+      { data: savedProperty },
+      Messages.Property_Creation_Success,
+      StatusCode.Created
+    );
   } catch (error: any) {
-    console.error("Create Property Error:", error.message);
-    failResponse(res,Messages.Property_Creation_Failed,StatusCode.Internal_Server_Error)
-    
+    failResponse(res, Messages.Property_Creation_Failed, StatusCode.Internal_Server_Error);
   }
 };
 
-
-export const getAllProperties=async(req:Request,res:Response):Promise<void>=>{
-
-  try{
-    const properties= await VillaPropertyModel.find();
-    successResponse(res,{data:properties},Messages.Property_Fetching_Success,StatusCode.OK)
-
-  }catch(error){
-    console.log(error)
-    failResponse(res,Messages.Property_Fetching_Fail,StatusCode.Internal_Server_Error)
+export const getAllProperties = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const properties = await VillaPropertyModel.find();
+    successResponse(
+      res,
+      { data: properties },
+      Messages.Property_Fetching_Success,
+      StatusCode.OK
+    );
+  } catch (error) {
+    failResponse(res, Messages.Property_Fetching_Fail, StatusCode.Internal_Server_Error);
   }
-}
+};

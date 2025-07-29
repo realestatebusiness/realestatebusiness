@@ -1,7 +1,7 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
-import Button from '../../atoms/Button';
+import { Heart } from 'react-feather';
 import type { VillaProperty } from '../../../types/propertyInterface.';
+import { Button } from '../../atoms/Button';
 
 interface Props {
   property: VillaProperty;
