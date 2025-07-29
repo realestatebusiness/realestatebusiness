@@ -7,6 +7,7 @@ import { Messages } from "../utils/constants";
 
 const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
+  console.log("Auth Header:", authHeader); 
   const token = authHeader?.split(" ")[1];
 
   if (!token) {

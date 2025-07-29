@@ -1,5 +1,5 @@
 import express from 'express'
-import {login, registerUser, getProfile, updateProfile } from '../controllers/userController'
+import {login, registerUser, getProfile, updateProfile, locationdata } from '../controllers/userController'
 import { sendOtp, verifyFirebaseOtpToken } from '../controllers/otpController';
 import { createProperty, getAllProperties } from '../controllers/propertyController';
 
@@ -20,7 +20,8 @@ router.get('/properties', getAllProperties);
 router.get("/nearby", nearByLocation);
 
 router.get('/profile', authenticate, getProfile);
-router.post('/profile/update', updateProfile);
+router.put('/profile/update',authenticate, updateProfile);
+router.post('/locationdata',locationdata)
 
 
 export default router;
