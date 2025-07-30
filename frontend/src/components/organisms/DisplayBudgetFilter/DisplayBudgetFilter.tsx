@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Dropdown from "../../atoms/Dropdown/Dropdown";
 import { DisplayBudgetSlider } from "../../molecules/DisplayBudgetSlider";
+import { useAppDispatch } from "../../../app/hooks";
+import { resetBudget, setMaxBudget, setMinBudget } from "../../../features/Filters/filterSlice";
 
 const generateBudgetOptions = (): string[] => {
   const options: string[] = [];
@@ -65,35 +67,39 @@ const DisplayBudgetFilter: React.FC = () => {
   const [max, setMax] = useState(budgetValues[budgetValues.length - 1]);
   const [isDefault, setIsDefault] = useState(true);
 
+  const dispatch = useAppDispatch();
+
+
   const handleSliderChange = (newMin: number, newMax: number) => {
     setMin(newMin);
     setMax(newMax);
+    dispatch(setMinBudget(newMin));
+    dispatch(setMaxBudget(newMax));
     setIsDefault(false);
   };
 
   const handleMinDropdown = (val: string) => {
-    if (!val) return;
     const newMin = valueToNumber(val);
     const maxIndex = findClosestOptionIndex(max);
-    const newMinIndex = Math.min(findClosestOptionIndex(newMin), maxIndex - 1);
-    const validMin = budgetValues[Math.max(0, newMinIndex)];
+    const validMin = budgetValues[Math.max(0, Math.min(findClosestOptionIndex(newMin), maxIndex - 1))];
     setMin(validMin);
+    dispatch(setMinBudget(validMin));
     setIsDefault(false);
   };
 
   const handleMaxDropdown = (val: string) => {
-    if (!val) return;
     const newMax = valueToNumber(val);
     const minIndex = findClosestOptionIndex(min);
-    const newMaxIndex = Math.max(findClosestOptionIndex(newMax), minIndex + 1);
-    const validMax = budgetValues[Math.min(budgetValues.length - 1, newMaxIndex)];
+    const validMax = budgetValues[Math.min(budgetValues.length - 1, Math.max(findClosestOptionIndex(newMax), minIndex + 1))];
     setMax(validMax);
+    dispatch(setMaxBudget(validMax));
     setIsDefault(false);
   };
 
   const handleClear = () => {
     setMin(budgetValues[0]);
     setMax(budgetValues[budgetValues.length - 1]);
+    dispatch(resetBudget());
     setIsDefault(true);
   };
 
