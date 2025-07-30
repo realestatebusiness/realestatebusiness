@@ -30,3 +30,20 @@ return api.get(endpoint,config)
 })
 
 }
+
+export const putRequest = <T>(
+  endpoint: string,
+  data: any,
+  p0: { headers: { Authorization: string } }): Promise<T> => {
+  return api
+    .put(endpoint, data, p0) // ✅ pass headers here
+    .then((response) => response.data as T)
+    .catch((error) => {
+      console.log('Error during PUT request', error);
+      throw error;
+    });
+};
+
+
+
+

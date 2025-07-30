@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Dropdown from "../../atoms/Dropdown/Dropdown";
 import { DisplayBudgetSlider } from "../../molecules/DisplayBudgetSlider";
-import Button from "../../atoms/Button";
 import { useAppDispatch } from "../../../app/hooks";
 import { resetBudget, setMaxBudget, setMinBudget } from "../../../features/Filters/filterSlice";
 

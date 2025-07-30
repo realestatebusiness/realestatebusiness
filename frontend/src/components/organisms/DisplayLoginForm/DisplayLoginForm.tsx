@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import LoginFormFields from "../../molecules/LoginFormFields/LoginFormFields";
 import { useNavigate } from "react-router-dom";
 import DisplayOtpVerification from "../../molecules/OtpFile/DisplayOtpVerification";
+import { getCityFromLocation } from "../../../utils/getCityFromLocation";
 
 const DisplayLoginForm: React.FC = () => {
   const [usePhoneLogin, setUsePhoneLogin] = useState(false);
@@ -17,6 +18,7 @@ const DisplayLoginForm: React.FC = () => {
   const [otpVerified, setOtpVerified] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
 
   const formatPhoneNumber = (raw: string): string => {
     const cleaned = raw.replace(/\D/g, '');
@@ -33,17 +35,27 @@ const onSubmit = async (data: LoginFormData) => {
     toast.error('Please verify OTP before login');
     return;
   }
+  const formattedPhone = formatPhoneNumber(phone);
+  const payload = usePhoneLogin
+    ? { phoneNumber: formattedPhone }
+    : { email: data.email, password: data.password };
 
   const formattedPhone = formatPhoneNumber(phone);
   const payload = usePhoneLogin
     ? { phoneNumber: formattedPhone }
     : { email: data.email, password: data.password };
 
-  try {
+ try {
     const res = await postRequest<ApiResponse>("/login", payload);
-    console.log(res)
-    dispatch(login({ user: res.data.user, token: res.data.token }));
-    toast.success("Login successful");
+    dispatch(
+      login({
+        user: { ...res.data.user, _id: res.data.userId },
+        token: res.data.token,
+      })
+    );
+    toast.success("Login successful"); 
+    await getCityFromLocation(res.data.userId);
+
     navigate('/home');
   } catch (error) {
     console.error("error during login", error);
