@@ -4,6 +4,7 @@ import { BudgetFilter } from "../components/templates/BudgetFilter";
 import { ConstructionStatusFilter } from "../components/templates/ConstructionStatusFilter";
 import { DisplayAmenitiesPage } from "../components/templates/DisplayAmenitiesPage";
 import PropertyTypeFilterDemo from "../components/templates/DisplayPropertyFilter/DisplayPropertyFilter";
+import { PostedByFilter } from "../components/templates/PostedByFilter";
 
 
 const Filters: React.FC = () => {
@@ -24,7 +25,9 @@ const Filters: React.FC = () => {
         <div className="border-t pt-4">
           <ConstructionStatusFilter />
         </div>
-        
+        <div className="border-t pt-4">
+          <PostedByFilter/>
+        </div>
         <div className="border-t pt-4">
           <DisplayAmenitiesPage />
         </div>

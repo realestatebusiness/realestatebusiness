@@ -118,6 +118,6 @@ export interface PropertyApiResponse {
   status: string;
   message?: string;
   data: {
-    data: VillaProperty[]; // ✅ Correct nested structure
+    data: VillaProperty[]; 
   };
 }

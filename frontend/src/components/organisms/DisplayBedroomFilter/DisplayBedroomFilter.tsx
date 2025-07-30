@@ -1,5 +1,9 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import { DisplayBedroomList } from "../../molecules/DisplayBedroomList";
+import type { RootState } from "../../../app/store";
+import { setBedroomOptions } from "../../../features/constructionstatusandbedroomfilter/constructionstatusandbedroomfilterSlice";
 
 const ALL_OPTIONS = [
   "1 RK/1 BHK",
@@ -15,16 +19,24 @@ const ALL_OPTIONS = [
 ];
 
 const DisplayBedroomFilter: React.FC = () => {
+  const dispatch = useDispatch();
+  const selected = useSelector(
+    (state: RootState) => state.constructionstatusandbedroomfilter.bedroomOptions
+  );
   const [expanded, setExpanded] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
 
-  const toggleOption = (value: string) => {
-    setSelected((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
+ const toggleOption = (value: string) => {
+  const updated = selected.includes(value)
+    ? selected.filter((v) => v !== value)
+    : [...selected, value];
+  console.log('Dispatching BedroomOptions:', updated);
+  dispatch(setBedroomOptions(updated));
+};
+
+
+  const handleClear = () => {
+    dispatch(setBedroomOptions([]));
   };
-
-  const handleClear = () => setSelected([]);
 
   const visibleOptions = expanded ? ALL_OPTIONS : ALL_OPTIONS.slice(0, 5);
   const hasMore = ALL_OPTIONS.length > 5;

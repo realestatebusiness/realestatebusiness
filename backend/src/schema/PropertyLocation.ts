@@ -13,13 +13,12 @@ const PropertySchema = new mongoose.Schema({
       default: "Point",
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
+      type: [Number],
       required: true,
     },
   },
 });
 
-// ✅ Explicitly create geospatial index
 PropertySchema.index({ location: "2dsphere" });
 
 export default mongoose.model("Property", PropertySchema);
