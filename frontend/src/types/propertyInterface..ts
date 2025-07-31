@@ -23,7 +23,7 @@ export interface VillaProperty {
 
   propertyProfile?: {
     bedrooms?: number;
-    bathrooms?: number;
+      bathrooms?: number;
     balconies?: number;
     areaDetails?: {
       carpetArea?: number;
