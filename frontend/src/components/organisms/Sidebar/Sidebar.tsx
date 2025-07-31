@@ -1,8 +1,8 @@
 // src/components/organisms/Sidebar/Sidebar.tsx
 import React from 'react';
 import UserCard from '../../molecules/UserCard/UserCard';
-import Navigation from '../Navigation/Navigation';
 import { useNavigate } from 'react-router-dom';
+import NavigationProfile from '../NavigationHomePage/NavigationProfilePage';
 
 interface SidebarProps {
   userName: string;
@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         profileImage={profileImage}
         onModifyClick={handleModifyClick}
       />
-      <Navigation />
+      <NavigationProfile />
     </aside>
   );
 };

@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 // Components
 import ProfilePageTemplate from "../../components/templates/ProfilePageTemplate/ProfilePageTemplate";
 import ProfileForm from "../../components/organisms/ProfileForm/ProfileForm";
+import type { RootState } from "../../app/store";
 
 // Default User Object
 const defaultUser: UserProfile = {
@@ -45,6 +46,7 @@ const sanitizeUserForUpdate = (user: UserProfile) => {
   const payload: any = {
     name: user.name?.trim() || '',
     email: user.email?.trim() || '',
+    role:user.role,
     phoneNumber: user.phoneNumber?.trim() || '',
     status: user.status || 'active',
     isActive: user.isActive !== undefined ? user.isActive : true,
@@ -97,7 +99,8 @@ const ManageProfile: React.FC = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
   const userProfile = useAppSelector(selectUserProfile);
-
+const users = useAppSelector((state: RootState) => state.auth.user);
+console.log("userprofile role : ",userProfile?.role);
   console.log('userprofile', userProfile);
 
   const fetchUserProfile = async (token: string) => {
@@ -294,6 +297,11 @@ const ManageProfile: React.FC = () => {
       try {
         const { city, state } = await getCityFromLocation(userid ?? "");
         console.log("Detected location:", city, state);
+        setLocalUser ((prev) => ({
+          ...prev,
+          city,
+          state,
+        }));
       } catch (err) {
         console.warn("Location detection failed:", err);
       }
@@ -307,7 +315,7 @@ const ManageProfile: React.FC = () => {
       userName={user.name || "User"}
       userRole={user.role?.[0] || "User"}
       profileImage={user.profilePhoto}
-      lastVisited="02:30 PM | 20 Jul, 2025"
+      lastVisited={user.updatedAt}
     >
       <ProfileForm
         user={user}

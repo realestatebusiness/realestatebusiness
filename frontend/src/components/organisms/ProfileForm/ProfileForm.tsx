@@ -9,6 +9,7 @@ import Label from "../../atoms/Label/Label";
 import Checkbox from "../../atoms/Checkbox/Checkbox";
 import CityDropDown from "../../atoms/CityDropDown/CityDropDown";
 import type { UserProfile } from "../../../types/authTypes";
+import { useAppSelector } from "../../../app/hooks";
 
 interface ProfileFormProps {
   user: UserProfile;
@@ -39,12 +40,12 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
     >
       {/* User Type */}
       <FormField
-        label="You are"
-        name="userType"
-        value="Owner"
-        disabled={true}
-        required={true}
-      />
+  label="You are"
+  name="userType"
+  value={user.role?.[0] ?? ''}
+  disabled={true}
+  required={true}
+/>
 
       {/* Name */}
       <FormField

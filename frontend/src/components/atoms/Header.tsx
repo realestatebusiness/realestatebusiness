@@ -11,7 +11,7 @@ import {
 import { useAppSelector } from "../../app/hooks";
 import type { RootState } from "../../app/store";
 import { ExploreModal } from "../organisms/ExploreModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigation } from "react-router-dom";
 import PropertyModal from "../organisms/PropertyModal/PropertyModal";
 
 interface HeaderProps {
@@ -30,6 +30,7 @@ const Header: React.FC<HeaderProps> = () => {
   const [showGuestContent, setShowGuestContent] = useState(false);
   const [showPlotContent, setShowPlotContent] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   const user = useAppSelector((state: RootState) => state.auth.user);
   const loggedIn = !!user;
@@ -155,7 +156,7 @@ const Header: React.FC<HeaderProps> = () => {
                             </span>
                           </li>
                           <li className="hover:text-blue-600 cursor-pointer">Lead Search</li>
-                          <li className="hover:text-blue-600 cursor-pointer">Modify Profile</li>
+                          <li className="hover:text-blue-600 cursor-pointer"  onClick={() => navigate("/profile")}>Modify Profile</li>
                           <li className="hover:text-blue-600 cursor-pointer">Change Password</li>
                           <li className="hover:text-blue-600 cursor-pointer">
                             <a href="/logout">Logout</a>
