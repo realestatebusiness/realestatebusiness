@@ -35,10 +35,7 @@ const onSubmit = async (data: LoginFormData) => {
     toast.error('Please verify OTP before login');
     return;
   }
-  const formattedPhone = formatPhoneNumber(phone);
-  const payload = usePhoneLogin
-    ? { phoneNumber: formattedPhone }
-    : { email: data.email, password: data.password };
+  
 
   const formattedPhone = formatPhoneNumber(phone);
   const payload = usePhoneLogin
