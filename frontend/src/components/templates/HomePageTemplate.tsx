@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Home, MapPin, Users } from 'react-feather';
 import { PostPropertySection } from '../organisms/PostPropertySection';
 import InsightsSection from '../organisms/InsightSection/InsightSection';
-import { Navigation } from '../organisms/Navigation';
 import SearchBar from '../organisms/SearchBar/SearchBar';
 import { PropertyTypeDropDown } from '../organisms/PropertyTypeDropDown';
 import { FilterBar } from '../organisms/FilterBar';
@@ -12,14 +11,16 @@ import { AdvertiserSection } from '../organisms/AdvertiserSection';
 import { SellWithUsSection } from '../organisms/SellWithUsSection';
 import { DownloadAppSection } from '../organisms/DownloadAppSection';
 import { GuestSideBar } from '../organisms/GuestSideBar';
-import { useAppSelector } from '../../app/hooks';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
 import { LoggedInHomepage } from '../organisms/LoggedInHomepage';
 import { getRequest } from '../../services/endpoints';
 import type { VillaProperty } from '../../types/propertyInterface.';
 import { PropertyPostingsSection } from '../organisms/PropertyPostingsSection';
+import { Navigation } from '../organisms/Navigation';
 
 const HomepageTemplate = () => {
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state: RootState) => state.auth.user);
   const token = useAppSelector((state: RootState) => state.auth.token);
   const userName = user?.name ?? 'Guest';
@@ -198,13 +199,18 @@ useEffect(() => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <Navigation tabs={tabs} selectedTab={selectedTab} onTabChange={setSelectedTab} />
+          <Navigation 
+            tabs={tabs}
+            selectedTab={selectedTab}
+            onTabChange={(tab) => dispatch(setSelectedTab(tab))}
+
+          />
           <SearchBar
             selectedTab={selectedTab}
             propertyCategory="All Residential"
             onSearch={() => {}}
           />
-
+         
           <button
             type="button"
             className="mt-4 text-sm text-blue-600 hover:underline"

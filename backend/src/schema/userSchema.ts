@@ -44,9 +44,9 @@ const userSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false },
     phoneNumber: { type: String, required: true },
-    role: { type: [String], enum: Object.values(UserRole), requred: true },
+    role: { type: [String], enum: Object.values(UserRole), required: true },
 
     favoriteProducts: [
       {

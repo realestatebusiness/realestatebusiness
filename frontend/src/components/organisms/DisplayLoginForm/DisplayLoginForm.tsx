@@ -40,11 +40,6 @@ const onSubmit = async (data: LoginFormData) => {
     ? { phoneNumber: formattedPhone }
     : { email: data.email, password: data.password };
 
-  const formattedPhone = formatPhoneNumber(phone);
-  const payload = usePhoneLogin
-    ? { phoneNumber: formattedPhone }
-    : { email: data.email, password: data.password };
-
  try {
     const res = await postRequest<ApiResponse>("/login", payload);
     dispatch(
