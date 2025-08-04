@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { User, ChevronDown, Menu as MenuIcon, HelpCircle } from "react-feather";
 import Sidebar from "../../pages/Sidebar";
 import { MainNav } from "../organisms/MainNav";
@@ -30,6 +30,7 @@ const Header: React.FC<HeaderProps> = () => {
   const [showGuestContent, setShowGuestContent] = useState(false);
   const [showPlotContent, setShowPlotContent] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
 
   const user = useAppSelector((state: RootState) => state.auth.user);
@@ -73,10 +74,28 @@ const Header: React.FC<HeaderProps> = () => {
   };
 
   const handleTabSelect = (tab: string) => {
-    setSelectedTab(tab); 
+    setSelectedTab(tab);
     setShowGuestContent(tab === "Buy" || tab === "Rent / Lease" || tab === "Rent");
     setShowPlotContent(tab === "Plots/Land");
   };
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
 
   return (
     <>
@@ -101,7 +120,7 @@ const Header: React.FC<HeaderProps> = () => {
               onOwnersToggle={toggleOwnersMenu}
             />
 
-            <div className="flex items-center space-x-4 relative">
+            <div ref={profileRef} className="flex items-center space-x-2 relative">
               <button
                 onClick={() => navigate("/createProperty")}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center space-x-1"
@@ -156,7 +175,7 @@ const Header: React.FC<HeaderProps> = () => {
                             </span>
                           </li>
                           <li className="hover:text-blue-600 cursor-pointer">Lead Search</li>
-                          <li className="hover:text-blue-600 cursor-pointer"  onClick={() => navigate("/profile")}>Modify Profile</li>
+                          <li className="hover:text-blue-600 cursor-pointer" onClick={() => navigate("/profile")}>Modify Profile</li>
                           <li className="hover:text-blue-600 cursor-pointer">Change Password</li>
                           <li className="hover:text-blue-600 cursor-pointer">
                             <a href="/logout">Logout</a>
@@ -211,8 +230,8 @@ const Header: React.FC<HeaderProps> = () => {
       <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
       {leftSelectorLabel === "Buy in Hyderabad" && (
-        <ExploreModal 
-          isOpen={isExploreModalOpen} 
+        <ExploreModal
+          isOpen={isExploreModalOpen}
           onClose={() => setExploreModalOpen(false)}
           onTabSelect={handleTabSelect}
         />

@@ -36,6 +36,10 @@ const onSubmit = async (data: LoginFormData) => {
     return;
   }
   
+  const formattedPhone = formatPhoneNumber(phone);
+  const payload = usePhoneLogin
+    ? { phoneNumber: formattedPhone }
+    : { email: data.email, password: data.password };
 
  try {
     const res = await postRequest<ApiResponse>("/login", payload);
@@ -47,7 +51,6 @@ const onSubmit = async (data: LoginFormData) => {
     );
     toast.success("Login successful"); 
     await getCityFromLocation(res.data.userId);
-
     navigate('/home');
   } catch (error) {
     console.error("error during login", error);

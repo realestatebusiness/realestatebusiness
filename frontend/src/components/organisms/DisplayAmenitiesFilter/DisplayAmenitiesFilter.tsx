@@ -1,31 +1,20 @@
-// components/organisms/DisplayAmenitiesFilter.tsx
-import React, { useState } from "react";
-import { DisplayAmenitiesList } from "../../molecules/DisplayAmenitiesList";
-
-const ALL_AMENITIES = [
-  "Parking",
-  "Vaastu Compliant",
-  "Power Backup",
-  "Lift",
-  "Park",
-  "Gymnasium",
-  "Club house",
-  "Swimming Pool",
-  "Security Personnel",
-  "Gas Pipeline",
-];
+import React, { useState, useCallback } from "react";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import { selectAmenities } from "../../../features/areaAndAmenitiesFilter/areaAndAmenitiesFilterSelectors";
+import { ALL_AMENITIES, formatAmenity } from "../../../utils/amenities";
+import { clearAmenities, toggleAmenity } from "../../../features/areaAndAmenitiesFilter/areaAndAmenitiesFilterSlice";
 
 const DisplayAmenitiesFilter: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const selected = useAppSelector(selectAmenities);
   const [expanded, setExpanded] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
 
-  const toggleOption = (value: string) => {
-    setSelected((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
-  };
+  const toggleOption = useCallback(
+    (value: string) => dispatch(toggleAmenity(value)),
+    [dispatch]
+  );
 
-  const handleClear = () => setSelected([]);
+  const handleClear = () => dispatch(clearAmenities());
 
   const visibleOptions = expanded ? ALL_AMENITIES : ALL_AMENITIES.slice(0, 5);
   const hiddenCount = ALL_AMENITIES.length - 5;
@@ -41,11 +30,27 @@ const DisplayAmenitiesFilter: React.FC = () => {
         )}
       </div>
 
-      <DisplayAmenitiesList
-        options={visibleOptions}
-        selected={selected}
-        toggleOption={toggleOption}
-      />
+      <div className="flex flex-wrap gap-2">
+        {visibleOptions.map((amenity) => {
+          const isSelected = selected.includes(amenity);
+          return (
+            <label
+              key={amenity}
+              onClick={() => toggleOption(amenity)}
+              className={`cursor-pointer select-none inline-flex items-center rounded-full border px-3 py-1 text-sm 
+                ${
+                  isSelected
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                }
+              `}
+            >
+              <span className="mr-1 font-bold">{isSelected ? "−" : "+"}</span>
+              <span>{formatAmenity(amenity)}</span>
+            </label>
+          );
+        })}
+      </div>
 
       {!expanded && hiddenCount > 0 && (
         <button

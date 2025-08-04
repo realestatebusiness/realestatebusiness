@@ -30,7 +30,7 @@ interface User extends Document {
     address:string;
     profilePhoto:string;
     companyLogo:string;
-    location:mongoose.Schema.Types.ObjectId;
+    location?:mongoose.Schema.Types.ObjectId;
     city:string;
     state:string;
     createdBy?: mongoose.Schema.Types.ObjectId;

@@ -10,19 +10,16 @@ import { setUser } from "../../features/userProfile/userProfileSlice";
 import { getCityFromLocation } from "../../utils/getCityFromLocation";
 import { useNavigate } from "react-router-dom";
 
-// Components
 import ProfilePageTemplate from "../../components/templates/ProfilePageTemplate/ProfilePageTemplate";
 import ProfileForm from "../../components/organisms/ProfileForm/ProfileForm";
-import type { RootState } from "../../app/store";
 
-// Default User Object
 const defaultUser: UserProfile = {
   _id: "",
   phoneNumber: "",
   isActive: false,
   companyLogo: "",
   profilePhoto: "",
-  role: [], // Uncommented this
+  role: [],
   name: "",
   email: "",
   address: "",
@@ -42,26 +39,24 @@ const defaultUser: UserProfile = {
 };
 
 const sanitizeUserForUpdate = (user: UserProfile) => {
-  // Ensure required fields are never empty or undefined
   const payload: any = {
+    _id: user._id,
     name: user.name?.trim() || '',
     email: user.email?.trim() || '',
-    role:user.role,
+    role: user.role,
     phoneNumber: user.phoneNumber?.trim() || '',
     status: user.status || 'active',
     isActive: user.isActive !== undefined ? user.isActive : true,
     version: user.version || 1,
   };
 
-  // Only add optional fields if they have meaningful values
   if (user.address?.trim()) payload.address = user.address.trim();
   if (user.landline?.trim()) payload.landline = user.landline.trim();
   if (user.city?.trim()) payload.city = user.city.trim();
   if (user.state?.trim()) payload.state = user.state.trim();
   if (user.companyLogo?.trim()) payload.companyLogo = user.companyLogo.trim();
   if (user.profilePhoto?.trim()) payload.profilePhoto = user.profilePhoto.trim();
-  
-  // Handle location - only include if it exists and has an _id
+
   if (user.location) {
     if (typeof user.location === 'object' && (user.location as any)?._id) {
       payload.location = (user.location as any)._id;
@@ -70,7 +65,6 @@ const sanitizeUserForUpdate = (user: UserProfile) => {
     }
   }
 
-  // Only include arrays if they have items
   if (user.userlocation?.length) {
     payload.userlocation = user.userlocation;
   }
@@ -78,31 +72,40 @@ const sanitizeUserForUpdate = (user: UserProfile) => {
     payload.favoriteProducts = user.favoriteProducts;
   }
 
-  // Only include role if it exists and has valid values
   if (user.role?.length && user.role.some(r => r && r.trim())) {
     payload.role = user.role.filter((r: string) => r && r.trim() !== '');
   }
 
-  // Metadata fields - only if they exist and are not empty
   if (user.createdBy?.trim()) payload.createdBy = user.createdBy.trim();
   if (user.updatedBy?.trim()) payload.updatedBy = user.updatedBy.trim();
 
   return payload;
 };
 
+const sanitizePhoneNumber = (phone: string): string => {
+  let cleaned = phone.replace(/\D/g, "");
+  if (cleaned.startsWith("91") && cleaned.length === 12) {
+    cleaned = cleaned.slice(2);
+  }
+  if (cleaned.length > 10) {
+    cleaned = cleaned.slice(-10);
+  }
+  return cleaned;
+};
+
 const ManageProfile: React.FC = () => {
   const [user, setLocalUser] = useState<UserProfile>(defaultUser);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locationDetected, setLocationDetected] = useState(false);
   const navigate = useNavigate();
   const userid = useAppSelector(selectCurrentUserId);
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
   const userProfile = useAppSelector(selectUserProfile);
-const users = useAppSelector((state: RootState) => state.auth.user);
-console.log("userprofile role : ",userProfile?.role);
-  console.log('userprofile', userProfile);
 
+  console.log('user Profile',userProfile)
+  
   const fetchUserProfile = async (token: string) => {
     try {
       setLoading(true);
@@ -123,14 +126,14 @@ console.log("userprofile role : ",userProfile?.role);
           isActive: data.isActive,
           companyLogo: data.companyLogo ?? "",
           profilePhoto: data.profilePhoto ?? "",
-          role: data.role?.filter((r: string) => r && r.trim() !== '') ?? [], // Filter out empty strings
+          role: data.role?.filter((r: string) => r && r.trim() !== '') ?? [],
           name: data.name,
           email: data.email,
           address: data.address ?? "",
           landline: data.landline ?? "",
           city: data.city ?? "",
-          state: data.state ?? "", // FIXED: was data.city
-          password: "", // intentionally left empty
+          state: data.state ?? "",
+          password: "",
           favoriteProducts: data.favoriteProducts ?? [],
           userlocation: data.userlocation ?? [],
           status: data.status,
@@ -162,29 +165,28 @@ console.log("userprofile role : ",userProfile?.role);
         return;
       }
 
-      const sanitizedUser = sanitizeUserForUpdate(user);
-
-      // Clean and validate phone number
-      let cleanedPhoneNumber = sanitizedUser.phoneNumber?.replace(/\D/g, '') || '';
-      
-      // Remove country code if present
-      if (cleanedPhoneNumber.startsWith('91') && cleanedPhoneNumber.length === 12) {
-        cleanedPhoneNumber = cleanedPhoneNumber.substring(2);
+      // Check if we have a user ID
+      if (!user._id) {
+        setError("User ID not found. Please refresh and try again.");
+        return;
       }
-      
-      // Ensure it's exactly 10 digits
+
+      const sanitizedUser = sanitizeUserForUpdate(user);
+      const cleanedPhoneNumber = sanitizePhoneNumber(sanitizedUser.phoneNumber || "");
+
       if (cleanedPhoneNumber.length !== 10) {
         setError("Phone number must be exactly 10 digits");
+        toast.error("Phone number must be exactly 10 digits");
         return;
       }
 
       const payload = {
+        userId: user._id, 
         ...sanitizedUser,
         phoneNumber: cleanedPhoneNumber,
       };
 
-      // Debug log to see what's being sent
-      console.log('Payload being sent:', payload);
+      console.log("Payload being sent:", payload);
 
       const res = await putRequest<{
         status: any;
@@ -197,8 +199,15 @@ console.log("userprofile role : ",userProfile?.role);
       });
 
       if (res.success) {
-        setLocalUser(res.data);
-        dispatch(setUser(res.data));
+        // Preserve the locally updated city and state values
+        const updatedUser = {
+          ...res.data,
+          city: user.city, // Use local state city
+          state: user.state, // Use local state state
+        };
+        
+        setLocalUser(updatedUser);
+        dispatch(setUser(updatedUser));
         toast.success("Profile updated successfully!");
         navigate("/home");
       } else {
@@ -206,7 +215,6 @@ console.log("userprofile role : ",userProfile?.role);
       }
     } catch (err: any) {
       console.error("Update failed", err);
-      console.error("Error response:", err.response?.data);
       setError(err.response?.data?.message || "Error updating profile");
     } finally {
       setLoading(false);
@@ -234,7 +242,6 @@ console.log("userprofile role : ",userProfile?.role);
   };
 
   const handleSubmit = async () => {
-    // Validate required fields before submitting
     if (!user.name?.trim()) {
       setError("Name is required");
       toast.error("Name is required");
@@ -251,7 +258,6 @@ console.log("userprofile role : ",userProfile?.role);
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(user.email.trim())) {
       setError("Please enter a valid email address");
@@ -259,10 +265,8 @@ console.log("userprofile role : ",userProfile?.role);
       return;
     }
 
-    // Validate phone number (should be 10 digits)
-    const phoneRegex = /^\d{10}$/;
-    const cleanPhone = user.phoneNumber.replace(/\D/g, '');
-    if (!phoneRegex.test(cleanPhone)) {
+    const cleanPhone = sanitizePhoneNumber(user.phoneNumber);
+    if (cleanPhone.length !== 10) {
       setError("Phone number should be 10 digits");
       toast.error("Phone number should be 10 digits");
       return;
@@ -292,23 +296,31 @@ console.log("userprofile role : ",userProfile?.role);
     }
   }, [token]);
 
+  // Modified location detection effect
   useEffect(() => {
     const detectLocation = async () => {
-      try {
-        const { city, state } = await getCityFromLocation(userid ?? "");
-        console.log("Detected location:", city, state);
-        setLocalUser ((prev) => ({
-          ...prev,
-          city,
-          state,
-        }));
-      } catch (err) {
-        console.warn("Location detection failed:", err);
+      // Only detect location if city/state are empty AND we haven't detected before
+      if ((!user.city || !user.state) && !locationDetected && userid) {
+        try {
+          const { city, state } = await getCityFromLocation(userid);
+          setLocalUser((prev) => ({
+            ...prev,
+            city: prev.city || city, // Only update if current city is empty
+            state: prev.state || state, // Only update if current state is empty
+          }));
+          setLocationDetected(true);
+        } catch (err) {
+          console.warn("Location detection failed:", err);
+          setLocationDetected(true); // Mark as attempted even if failed
+        }
       }
     };
 
-    detectLocation();
-  }, [userid]);
+    // Only run location detection after user profile is loaded
+    if (user._id && userid) {
+      detectLocation();
+    }
+  }, [user._id, userid, user.city, user.state, locationDetected]);
 
   return (
     <ProfilePageTemplate

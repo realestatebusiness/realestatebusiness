@@ -103,9 +103,7 @@ const DisplayBudgetFilter: React.FC = () => {
     setIsDefault(true);
   };
 
-  const handleApply = () => {
-    console.log('Applied budget filter:', { min: formatLabel(min), max: formatLabel(max) });
-  };
+
 
   const isCleared = min === budgetValues[0] && max === budgetValues[budgetValues.length - 1] && isDefault;
 
