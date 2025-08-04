@@ -3,8 +3,7 @@ import InputField from "../../atoms/InputField/InputField"; // Update this path
 import Button from "../../atoms/Button/Button"; // Update this path
 import { postRequest } from "../../../services/endpoints";
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../app/store';
-import { selectCurrentUserId, selectAuthToken } from '../../templates/';
+import { selectAuthToken, selectCurrentUserId } from "../../../features/auth";
 
 interface PasswordData {
   current: string;

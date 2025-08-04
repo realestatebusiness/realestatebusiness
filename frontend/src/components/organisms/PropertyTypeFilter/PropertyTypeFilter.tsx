@@ -4,83 +4,87 @@ import ShowMoreButton from "../../atoms/ShowmoreButton/ShowmoreButton";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { clearTypeOfPropertySelection, setTypeOfPropertySelection } from "../../../features/PropertyType/typeOfPropertySlice";
 
+// Define the PropertyType type to match your Redux slice
+type PropertyType = 'flat_apartment' | 'independent_house_villa' | 'plot_land' | 'office' | 'hospitality' | 'industry';
+
+// Simplified property types with proper typing
+const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
+  { value: 'flat_apartment', label: "Flat/Apartment" },
+  { value: 'independent_house_villa', label: "Independent House/Villa" },
+  { value: 'plot_land', label: "Plot/Land" },
+  { value: 'office', label: "Office" },
+  { value: 'hospitality', label: "Hospitality" },
+  { value: 'industry', label: "Industry" }
+];
 
 interface PropertyTypeFilterProps {
-  options?: string[];
   maxVisibleOptions?: number;
-  selectedOptions?: string[];
-  onSelectionChange?: (selected: string[]) => void;
+  onFilterChange?: (selectedTypes: PropertyType[]) => void;
 }
 
 const PropertyTypeFilter: React.FC<PropertyTypeFilterProps> = ({
-  options = [
-    "Residential Apartment",
-    "Residential Land",
-    "Independent House/Villa",
-    "Independent/Builder Floor",
-    "Farm House",
-    "1 RK/ Studio Apartment",
-    "Office Space",
-    "Shop/Showroom",
-    "Commercial Land",
-    "Warehouse/Godown",
-  ],
-  maxVisibleOptions = 5,
-  selectedOptions = [],
-  onSelectionChange,
+  maxVisibleOptions = 4,
+  onFilterChange
 }) => {
   const dispatch = useAppDispatch();
-
-  const reduxSelected = useAppSelector((state) => state.typeOfProperty.selectedTypes);
-  const [selected, setSelected] = useState<string[]>(selectedOptions.length ? selectedOptions : reduxSelected);
-
+  const selectedTypes = useAppSelector((state) => state.typeOfProperty.selectedTypes);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const handleOptionClick = (typeValue: PropertyType) => {
+    const newSelected: PropertyType[] = selectedTypes.includes(typeValue)
+      ? selectedTypes.filter((item) => item !== typeValue)
+      : [...selectedTypes, typeValue];
 
-  const handleOptionClick = (option: string) => {
-    const newSelected = selected.includes(option)
-      ? selected.filter((item) => item !== option)
-      : [...selected, option];
-
-    setSelected(newSelected);
+    // Update Redux state
     dispatch(setTypeOfPropertySelection(newSelected));
-    onSelectionChange?.(newSelected);
+    
+    // Notify parent component
+    onFilterChange?.(newSelected);
   };
-
-  const handleToggleExpanded = () => setIsExpanded(!isExpanded);
 
   const handleClear = () => {
-    setSelected([]);
     dispatch(clearTypeOfPropertySelection());
-    onSelectionChange?.([]);
+    onFilterChange?.([]);
   };
 
-  const visibleOptions = isExpanded ? options : options.slice(0, maxVisibleOptions);
-  const hiddenCount = options.length - maxVisibleOptions;
+  const visibleTypes = isExpanded ? PROPERTY_TYPES : PROPERTY_TYPES.slice(0, maxVisibleOptions);
+  const hiddenCount = PROPERTY_TYPES.length - maxVisibleOptions;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Type of property</h3>
-        {selected.length > 0 && (
+        {selectedTypes.length > 0 && (
           <button onClick={handleClear} className="text-blue-600 text-sm hover:underline">
-            Clear
+            Clear ({selectedTypes.length})
           </button>
         )}
       </div>
 
       <div className="space-y-2">
-        {visibleOptions.map((option) => (
+        {visibleTypes.map((type) => (
           <PropertyOption
-            key={option}
-            label={option}
-            isSelected={selected.includes(option)}
-            onClick={() => handleOptionClick(option)}
+            key={type.value}
+            label={type.label}
+            isSelected={selectedTypes.includes(type.value)}
+            onClick={() => handleOptionClick(type.value)}
           />
         ))}
 
         {!isExpanded && hiddenCount > 0 && (
-          <ShowMoreButton count={hiddenCount} onClick={handleToggleExpanded} />
+          <ShowMoreButton 
+            count={hiddenCount} 
+            onClick={() => setIsExpanded(true)} 
+          />
+        )}
+        
+        {isExpanded && (
+          <button 
+            onClick={() => setIsExpanded(false)}
+            className="text-blue-600 text-sm hover:underline mt-2"
+          >
+            Show Less
+          </button>
         )}
       </div>
     </div>

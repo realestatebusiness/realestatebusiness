@@ -4,9 +4,8 @@ import propertyReducer from "../features/property/propertySlice"
 import filterReducer from '../features/Filters/filterSlice';
 import typeOfPropertyReducer from '../features/PropertyType/typeOfPropertySlice';
 import constructionstatusandbedroomfilterReducer from '../features/constructionstatusandbedroomfilter/constructionstatusandbedroomfilterSlice';
-
-
-
+import userProfileReducer from "../features/userProfile/userProfileSlice"; 
+import areaAndAmenitiesFilterReducer from "../features/areaAndAmenitiesFilter/areaAndAmenitiesFilterSlice";
 
 export const store = configureStore({
    reducer: {
@@ -15,6 +14,8 @@ export const store = configureStore({
       filters: filterReducer,
       typeOfProperty: typeOfPropertyReducer,
       constructionstatusandbedroomfilter: constructionstatusandbedroomfilterReducer,
+       userProfile: userProfileReducer,
+       areaAndAmenitiesFilter: areaAndAmenitiesFilterReducer,
    }
 })
 

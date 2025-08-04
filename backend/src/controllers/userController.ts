@@ -61,7 +61,7 @@ const login = async (req: Request, res: Response): Promise<any> => {
 
     try {
         let user;
-        if (phoneNumber && !email && !password) {
+        if (phoneNumber ) {
             user = await UserModel.findOne({ phoneNumber });
             if (!user) {
                 failResponse(res, Messages.User_Not_Found, StatusCode.Unauthorized);
@@ -155,19 +155,14 @@ const updateProfile = async (req: Request, res: Response): Promise<any> => {
 
 const locationdata = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { city, state, latitude, longitude, userId } = req.body; // Ensure userId is passed or extracted from token
+    const { city, state, latitude, longitude, userId } = req.body; 
 
     if (!city || !state || !latitude || !longitude || !userId) {
       failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
       return;
     }
 
-    // Step 1: Create PropertyLocation
     const locationDoc = await PropertyLocation.create({
-      title: `${city}, ${state}`,
-      price: 0, // optional defaults if not provided
-      description: "",
-      address: "",
       city,
       state,
       location: {
@@ -176,9 +171,8 @@ const locationdata = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    // Step 2: Update user schema
     await UserModel.findByIdAndUpdate(userId, {
-      $set: { location: locationDoc._id }, // OR $push to userlocation array
+      $set: { location: locationDoc._id }, 
     });
 
     successResponse(res, locationDoc, Messages.Location_Fetching_Success, StatusCode.OK);
