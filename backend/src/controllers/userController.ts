@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import generateToken from "../utils/jwtUtils";
 import PropertyLocation from "../schema/PropertyLocation";
+import mongoose from "mongoose";
 
 
 const registerUser = async (req: Request, res: Response): Promise<any> => {
@@ -178,6 +179,42 @@ const locationdata = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error(error);
     failResponse(res, Messages.Internal_Server_Error, StatusCode.Internal_Server_Error);
+  }
+};
+
+
+
+export const changePassword = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const userId = req.userId; // set by JWT middleware
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return failResponse(res, Messages.Missing_Fields_Required, StatusCode.Bad_Request);
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return failResponse(res, Messages.User_Not_Found, StatusCode.Not_Found);
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return failResponse(res, Messages.Invalid_Current_Password, StatusCode.Unauthorized);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    user.updatedAt = new Date();
+user.updatedBy = new mongoose.Types.ObjectId(userId);
+    await user.save();
+
+    return successResponse(res, {}, Messages.Password_Update_Success, StatusCode.OK);
+  } catch (err) {
+    console.error("Change password failed", err);
+    return failResponse(res, Messages.Server_Error, StatusCode.Internal_Server_Error);
   }
 };
 

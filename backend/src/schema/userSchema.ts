@@ -33,8 +33,8 @@ interface User extends Document {
     location?:mongoose.Schema.Types.ObjectId;
     city:string;
     state:string;
-    createdBy?: mongoose.Schema.Types.ObjectId;
-    updatedBy?: mongoose.Schema.Types.ObjectId;
+    createdBy?: mongoose.Types.ObjectId;
+  updatedBy?: mongoose.Types.ObjectId;
     isActive: boolean;
   
 
@@ -79,10 +79,12 @@ const userSchema: Schema = new Schema(
     companyLogo: { type: String },
     city:{type:String},
     state:{type:String},
-    location: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Property",
-    },
+    location: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Property",
+      },
+     ],
   },
   {
     timestamps: true,
